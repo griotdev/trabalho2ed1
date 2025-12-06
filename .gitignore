@@ -2,13 +2,14 @@
 *.o
 
 # Arquivos Markdown
-*.md
+#*.md
 
 # Diretório de build
 build/
 
 # Executáveis
 t2
+ted
 
 # Arquivos temporários do editor
 *~
@@ -19,6 +20,6 @@ t2
 *.dSYM/
 
 # Arquivos de entrada/saída
-*.geo
-*.qry
-*.svg
+#*.geo
+#*.qry
+#*.svg

@@ -266,21 +266,9 @@ int main(int argc, char *argv[])
     if (tem_qry)
     {
         printf("\n[8] Processamento de consultas (.qry)...\n");
-        printf("    [TODO] Módulo de parser .qry ainda não implementado.\n");
+        printf("    [TODO] Módulo QRY ainda não implementado.\n");
         printf("    Arquivo a processar: %s\n", caminho_qry);
-
-        /*
-         * Aqui entraria o código para:
-         * - Ler cada comando do .qry (a, d, P, cln)
-         * - Para comandos de bomba: executar algoritmo de visibilidade
-         * - Gerar relatórios e SVGs conforme necessário
-         */
-        
-        /* Nome do SVG com consultas */
-        char caminho_svg_qry[MAX_CAMINHO];
-        snprintf(caminho_svg_qry, MAX_CAMINHO, "%s/%s-consultas.svg", 
-                 obter_diretorio_saida(args), nome_base);
-        printf("    SVG de consultas (futuro): %s\n", caminho_svg_qry);
+        printf("    Comandos suportados: a (anteparo), d (destruição), P (pintura), cln (clonagem)\n");
     }
     else
     {
