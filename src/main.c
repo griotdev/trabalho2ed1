@@ -2,9 +2,6 @@
  *
  * Ponto de entrada do programa.
  * Trabalho 2 - Estrutura de Dados (Região de Visibilidade)
- *
- * Este é um main PROVISÓRIO para testar o fluxo básico do programa.
- * Conforme os módulos forem implementados, este arquivo será expandido.
  */
 
 #include <stdio.h>
@@ -19,9 +16,14 @@
 #include "linha.h"
 #include "texto.h"
 #include "formas.h"
+#include "parser_geo.h"
+#include "svg.h"
 
 /* Tamanho máximo para caminhos de arquivo */
 #define MAX_CAMINHO 512
+
+/* Margem extra no viewBox do SVG */
+#define MARGEM_SVG 10.0
 
 /* ============================================================================
  * Funções Auxiliares
@@ -61,6 +63,18 @@ static void extrair_nome_base(const char *nome_arquivo, char *nome_base, int tam
     if (ponto != NULL)
     {
         *ponto = '\0';
+    }
+}
+
+/**
+ * Função para destruir uma forma (usada na destruição da lista).
+ */
+static void destruir_forma_callback(void *elemento)
+{
+    Forma *forma = (Forma*)elemento;
+    if (forma != NULL)
+    {
+        destroiForma(forma);
     }
 }
 
@@ -164,7 +178,7 @@ int main(int argc, char *argv[])
     printf("    SVG de saída: %s\n", caminho_svg);
 
     /* ========================================
-     * 4. Criar lista de formas (provisório)
+     * 4. Criar lista de formas
      * ======================================== */
     printf("\n[4] Inicializando estruturas de dados...\n");
     
@@ -178,33 +192,69 @@ int main(int argc, char *argv[])
     printf("    [OK] Lista de formas criada.\n");
 
     /* ========================================
-     * 5. TODO: Ler arquivo .geo
+     * 5. Ler arquivo .geo
      * ======================================== */
     printf("\n[5] Leitura do arquivo .geo...\n");
-    printf("    [TODO] Módulo de parser .geo ainda não implementado.\n");
-    printf("    Arquivo a processar: %s\n", caminho_geo);
-
-    /* 
-     * Aqui entraria o código para:
-     * - Abrir o arquivo .geo
-     * - Ler cada linha e interpretar o comando (c, r, l, t, ts)
-     * - Criar as formas correspondentes
-     * - Inserir na lista de formas
-     */
+    
+    int formas_lidas = ler_arquivo_geo(caminho_geo, lista_formas);
+    if (formas_lidas < 0)
+    {
+        fprintf(stderr, "Erro: falha ao ler arquivo .geo\n");
+        destruir_lista(lista_formas, destruir_forma_callback);
+        destruir_argumentos(args);
+        return 1;
+    }
+    
+    printf("    Total de formas na lista: %d\n", obter_tamanho(lista_formas));
 
     /* ========================================
-     * 6. TODO: Gerar SVG inicial
+     * 6. Calcular dimensões do cenário
      * ======================================== */
-    printf("\n[6] Geração do SVG inicial...\n");
-    printf("    [TODO] Módulo SVG ainda não implementado.\n");
-    printf("    Arquivo a gerar: %s\n", caminho_svg);
+    printf("\n[6] Calculando dimensões do cenário...\n");
+    
+    double min_x, min_y, max_x, max_y;
+    if (!obter_dimensoes_cenario(lista_formas, &min_x, &min_y, &max_x, &max_y))
+    {
+        fprintf(stderr, "Aviso: não foi possível calcular dimensões (lista vazia?)\n");
+        min_x = 0; min_y = 0;
+        max_x = 800; max_y = 600;
+    }
+    
+    /* Adiciona margem */
+    min_x -= MARGEM_SVG;
+    min_y -= MARGEM_SVG;
+    double largura = (max_x - min_x) + 2 * MARGEM_SVG;
+    double altura = (max_y - min_y) + 2 * MARGEM_SVG;
+    
+    printf("    Bounding Box: (%.2f, %.2f) até (%.2f, %.2f)\n", 
+           min_x + MARGEM_SVG, min_y + MARGEM_SVG, max_x, max_y);
+    printf("    ViewBox: %.2f %.2f %.2f %.2f\n", min_x, min_y, largura, altura);
 
     /* ========================================
-     * 7. TODO: Processar arquivo .qry (se existir)
+     * 7. Gerar SVG inicial
+     * ======================================== */
+    printf("\n[7] Gerando SVG inicial...\n");
+    
+    SvgContexto svg = criar_svg_viewbox(caminho_svg, min_x, min_y, largura, altura);
+    if (svg == NULL)
+    {
+        fprintf(stderr, "Erro: falha ao criar arquivo SVG\n");
+        destruir_lista(lista_formas, destruir_forma_callback);
+        destruir_argumentos(args);
+        return 1;
+    }
+    
+    svg_desenhar_lista(svg, lista_formas);
+    finalizar_svg(svg);
+    
+    printf("    [OK] SVG gerado: %s\n", caminho_svg);
+
+    /* ========================================
+     * 8. Processar arquivo .qry (se existir)
      * ======================================== */
     if (tem_qry)
     {
-        printf("\n[7] Processamento de consultas (.qry)...\n");
+        printf("\n[8] Processamento de consultas (.qry)...\n");
         printf("    [TODO] Módulo de parser .qry ainda não implementado.\n");
         printf("    Arquivo a processar: %s\n", caminho_qry);
 
@@ -214,19 +264,24 @@ int main(int argc, char *argv[])
          * - Para comandos de bomba: executar algoritmo de visibilidade
          * - Gerar relatórios e SVGs conforme necessário
          */
+        
+        /* Nome do SVG com consultas */
+        char caminho_svg_qry[MAX_CAMINHO];
+        snprintf(caminho_svg_qry, MAX_CAMINHO, "%s/%s-consultas.svg", 
+                 obter_diretorio_saida(args), nome_base);
+        printf("    SVG de consultas (futuro): %s\n", caminho_svg_qry);
     }
     else
     {
-        printf("\n[7] Sem arquivo .qry - pulando processamento de consultas.\n");
+        printf("\n[8] Sem arquivo .qry - pulando processamento de consultas.\n");
     }
 
     /* ========================================
-     * 8. Limpeza
+     * 9. Limpeza
      * ======================================== */
-    printf("\n[8] Finalizando...\n");
+    printf("\n[9] Finalizando...\n");
     
-    /* Destruir lista de formas (quando tiver elementos, usar função de destruição apropriada) */
-    destruir_lista(lista_formas, NULL);
+    destruir_lista(lista_formas, destruir_forma_callback);
     printf("    [OK] Lista de formas liberada.\n");
 
     destruir_argumentos(args);

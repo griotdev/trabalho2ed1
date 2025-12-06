@@ -34,14 +34,15 @@ LINHA_SRC = $(LIB_DIR)/formas/linha/linha.c
 TEXTO_SRC = $(LIB_DIR)/formas/texto/texto.c
 FORMAS_SRC = $(LIB_DIR)/formas/formas/formas.c
 
+# Módulos GEO (parser e svg)
+PARSER_GEO_SRC = $(LIB_DIR)/geo/parser_geo/parser_geo.c
+SVG_SRC = $(LIB_DIR)/geo/svg/svg.c
+
 # Módulos de geometria (futuros)
 # PONTO_SRC = $(LIB_DIR)/geometria/ponto/ponto.c
 # SEGMENTO_SRC = $(LIB_DIR)/geometria/segmento/segmento.c
 # POLIGONO_SRC = $(LIB_DIR)/geometria/poligono/poligono.c
 # CALCULOS_SRC = $(LIB_DIR)/geometria/calculos/calculos.c
-
-# Módulo SVG (futuro)
-# SVG_SRC = $(LIB_DIR)/svg/svg.c
 
 # Arquivo principal
 MAIN_SRC = main.c
@@ -57,7 +58,9 @@ SOURCES = $(ARGUMENTOS_SRC) \
           $(RETANGULO_SRC) \
           $(LINHA_SRC) \
           $(TEXTO_SRC) \
-          $(FORMAS_SRC)
+          $(FORMAS_SRC) \
+          $(PARSER_GEO_SRC) \
+          $(SVG_SRC)
 
 # Objetos correspondentes
 OBJECTS = $(patsubst %.c,$(BUILD_DIR)/%.o,$(notdir $(SOURCES)))
@@ -76,7 +79,9 @@ INCLUDES = -I$(LIB_DIR)/argumentos \
            -I$(LIB_DIR)/formas/retangulo \
            -I$(LIB_DIR)/formas/linha \
            -I$(LIB_DIR)/formas/texto \
-           -I$(LIB_DIR)/formas/formas
+           -I$(LIB_DIR)/formas/formas \
+           -I$(LIB_DIR)/geo/parser_geo \
+           -I$(LIB_DIR)/geo/svg
 
 # =============================================================================
 # Regras principais
@@ -125,6 +130,14 @@ $(BUILD_DIR)/texto.o: $(TEXTO_SRC)
 
 # Formas (agregador)
 $(BUILD_DIR)/formas.o: $(FORMAS_SRC)
+	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+
+# Parser GEO
+$(BUILD_DIR)/parser_geo.o: $(PARSER_GEO_SRC)
+	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+
+# SVG
+$(BUILD_DIR)/svg.o: $(SVG_SRC)
 	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
 # Main
