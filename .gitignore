@@ -1,0 +1,19 @@
+# Arquivos objeto (compilados)
+*.o
+
+# Arquivos Markdown
+*.md
+
+# Diretório de build
+build/
+
+# Executáveis
+t2
+
+# Arquivos temporários do editor
+*~
+*.swp
+*.swo
+
+# Arquivos de debug
+*.dSYM/
