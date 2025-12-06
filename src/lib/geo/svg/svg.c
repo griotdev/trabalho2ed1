@@ -42,13 +42,6 @@ static void escrever_header(SvgContextoInternal *ctx)
             "<svg xmlns=\"http://www.w3.org/2000/svg\" "
             "viewBox=\"%.2f %.2f %.2f %.2f\">\n",
             ctx->min_x, ctx->min_y, ctx->largura, ctx->altura);
-    
-    /* Fundo branco opcional */
-    fprintf(ctx->arquivo,
-            "  <!-- Fundo -->\n"
-            "  <rect x=\"%.2f\" y=\"%.2f\" width=\"%.2f\" height=\"%.2f\" "
-            "fill=\"white\" stroke=\"none\"/>\n\n",
-            ctx->min_x, ctx->min_y, ctx->largura, ctx->altura);
 }
 
 /**
