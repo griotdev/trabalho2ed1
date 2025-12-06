@@ -20,7 +20,7 @@
 #include "svg.h"
 
 /* Tamanho máximo para caminhos de arquivo */
-#define MAX_CAMINHO 512
+#define MAX_CAMINHO 1024
 
 /* Margem extra no viewBox do SVG */
 #define MARGEM_SVG 10.0
@@ -82,7 +82,7 @@ static void extrair_nome_base(const char *caminho_arquivo, char *nome_base, int 
  */
 static void destruir_forma_callback(void *elemento)
 {
-    Forma *forma = (Forma*)elemento;
+    Forma forma = (Forma)elemento;
     if (forma != NULL)
     {
         destroiForma(forma);

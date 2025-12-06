@@ -215,7 +215,7 @@ void svg_desenhar_texto(SvgContexto svg, Texto t)
             getTextoConteudo(t));
 }
 
-void svg_desenhar_forma(SvgContexto svg, Forma *forma)
+void svg_desenhar_forma(SvgContexto svg, Forma forma)
 {
     if (svg == NULL || forma == NULL) return;
     
@@ -252,7 +252,7 @@ void svg_desenhar_lista(SvgContexto svg, Lista lista)
     No atual = obter_primeiro(lista);
     while (atual != NULL)
     {
-        Forma *forma = (Forma*)obter_elemento(atual);
+        Forma forma = (Forma)obter_elemento(atual);
         svg_desenhar_forma(svg, forma);
         atual = obter_proximo(atual);
     }

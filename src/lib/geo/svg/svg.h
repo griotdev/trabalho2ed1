@@ -91,7 +91,7 @@ void svg_desenhar_texto(SvgContexto ctx, Texto t);
 /**
  * Desenha uma forma genérica (detecta o tipo automaticamente).
  */
-void svg_desenhar_forma(SvgContexto ctx, Forma *forma);
+void svg_desenhar_forma(SvgContexto ctx, Forma forma);
 
 /* ============================================================================
  * Funções de Alto Nível

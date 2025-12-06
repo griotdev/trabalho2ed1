@@ -256,7 +256,7 @@ int ler_arquivo_geo(const char *caminho_arquivo, Lista lista_formas)
             continue;
         }
         
-        Forma *forma = NULL;
+        Forma forma = NULL;
         char comando = linha_limpa[0];
         
         switch (comando)
@@ -320,7 +320,7 @@ int obter_dimensoes_cenario(Lista lista_formas,
     No atual = obter_primeiro(lista_formas);
     while (atual != NULL)
     {
-        Forma *forma = (Forma*)obter_elemento(atual);
+        Forma forma = (Forma)obter_elemento(atual);
         TipoForma tipo = getFormaTipo(forma);
         void *dados = getFormaDados(forma);
         

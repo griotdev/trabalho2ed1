@@ -5,7 +5,7 @@
 
 # Compilador e flags obrigatórias
 CC = gcc
-CFLAGS = -std=c99 -fstack-protector-all -Wall -Wextra -g
+CFLAGS = -std=c99 -fstack-protector-all -Wall -Wextra -Wno-format-truncation -g
 LDFLAGS = -lm
 
 # Diretórios

@@ -1,16 +1,29 @@
+/* formas.c
+ *
+ * Implementação do TAD Forma genérica.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include "formas.h"
 
-struct forma
+/* ============================================================================
+ * Estrutura Interna (Ponteiro Opaco)
+ * ============================================================================ */
+
+typedef struct forma_internal
 {
     TipoForma tipo;
     void *dados;
-};
+} FormaInternal;
 
-Forma *criaForma(TipoForma tipo, void *dados)
+/* ============================================================================
+ * Implementação das Funções Públicas
+ * ============================================================================ */
+
+Forma criaForma(TipoForma tipo, void *dados)
 {
-    Forma *f = (Forma *)malloc(sizeof(Forma));
+    FormaInternal *f = (FormaInternal*)malloc(sizeof(FormaInternal));
     if (f == NULL)
     {
         fprintf(stderr, "Erro ao alocar memória para forma genérica.\n");
@@ -20,25 +33,28 @@ Forma *criaForma(TipoForma tipo, void *dados)
     f->tipo = tipo;
     f->dados = dados;
 
-    return f;
+    return (Forma)f;
 }
 
-TipoForma getFormaTipo(Forma *f)
+TipoForma getFormaTipo(Forma forma)
 {
-    if (!f)
+    FormaInternal *f = (FormaInternal*)forma;
+    if (f == NULL)
     {
-        return (TipoForma)-1; // Sentinel for inválido; avoids signedness warning
+        return (TipoForma)-1;
     }
     return f->tipo;
 }
 
-void *getFormaDados(Forma *f)
+void* getFormaDados(Forma forma)
 {
+    FormaInternal *f = (FormaInternal*)forma;
     return f ? f->dados : NULL;
 }
 
-int getFormaId(Forma *f)
+int getFormaId(Forma forma)
 {
+    FormaInternal *f = (FormaInternal*)forma;
     if (f == NULL || f->dados == NULL)
     {
         return -1;
@@ -46,101 +62,104 @@ int getFormaId(Forma *f)
 
     switch (f->tipo)
     {
-    case TIPO_CIRCULO:
-        return getCirculoId((Circulo *)f->dados);
-    case TIPO_RETANGULO:
-        return getRetanguloId((Retangulo *)f->dados);
-    case TIPO_LINHA:
-        return getLinhaId((Linha *)f->dados);
-    case TIPO_TEXTO:
-        return getTextoId((Texto *)f->dados);
-    default:
-        return -1;
+        case TIPO_CIRCULO:
+            return getCirculoId((Circulo)f->dados);
+        case TIPO_RETANGULO:
+            return getRetanguloId((Retangulo)f->dados);
+        case TIPO_LINHA:
+            return getLinhaId((Linha)f->dados);
+        case TIPO_TEXTO:
+            return getTextoId((Texto)f->dados);
+        default:
+            return -1;
     }
 }
 
-void destroiForma(Forma *forma)
+void destroiForma(Forma forma)
 {
-    if (forma == NULL)
+    FormaInternal *f = (FormaInternal*)forma;
+    if (f == NULL)
     {
         return;
     }
 
-    if (forma->dados != NULL)
+    if (f->dados != NULL)
     {
-        switch (forma->tipo)
+        switch (f->tipo)
         {
-        case TIPO_CIRCULO:
-            destroiCirculo((Circulo *)forma->dados);
-            break;
-        case TIPO_RETANGULO:
-            destroiRetangulo((Retangulo *)forma->dados);
-            break;
-        case TIPO_LINHA:
-            destroiLinha((Linha *)forma->dados);
-            break;
-        case TIPO_TEXTO:
-            destroiTexto((Texto *)forma->dados);
-            break;
+            case TIPO_CIRCULO:
+                destroiCirculo((Circulo)f->dados);
+                break;
+            case TIPO_RETANGULO:
+                destroiRetangulo((Retangulo)f->dados);
+                break;
+            case TIPO_LINHA:
+                destroiLinha((Linha)f->dados);
+                break;
+            case TIPO_TEXTO:
+                destroiTexto((Texto)f->dados);
+                break;
         }
     }
 
-    free(forma);
+    free(f);
 }
 
-void setFormaPosicao(Forma *forma, double x, double y)
+void setFormaPosicao(Forma forma, double x, double y)
 {
-    if (forma == NULL || forma->dados == NULL)
+    FormaInternal *f = (FormaInternal*)forma;
+    if (f == NULL || f->dados == NULL)
     {
         return;
     }
 
-    switch (forma->tipo)
+    switch (f->tipo)
     {
-    case TIPO_CIRCULO:
-        setCirculoPosicao((Circulo *)forma->dados, x, y);
+        case TIPO_CIRCULO:
+            setCirculoPosicao((Circulo)f->dados, x, y);
+            break;
+        case TIPO_RETANGULO:
+            setRetanguloPosicao((Retangulo)f->dados, x, y);
+            break;
+        case TIPO_LINHA:
+        {
+            double x1 = getLinhaX1((Linha)f->dados);
+            double y1 = getLinhaY1((Linha)f->dados);
+            double dx = x - x1;
+            double dy = y - y1;
+            setLinhaPosicao((Linha)f->dados, dx, dy);
+        }
         break;
-    case TIPO_RETANGULO:
-        setRetanguloPosicao((Retangulo *)forma->dados, x, y);
-        break;
-    case TIPO_LINHA:
-    {
-        double x1 = getLinhaX1((Linha *)forma->dados);
-        double y1 = getLinhaY1((Linha *)forma->dados);
-        double dx = x - x1;
-        double dy = y - y1;
-        setLinhaPosicao((Linha *)forma->dados, dx, dy);
-    }
-    break;
-    case TIPO_TEXTO:
-        setTextoPosicao((Texto *)forma->dados, x, y);
-        break;
+        case TIPO_TEXTO:
+            setTextoPosicao((Texto)f->dados, x, y);
+            break;
     }
 }
 
-Forma *clonaForma(Forma *forma)
+Forma clonaForma(Forma forma)
 {
-    if (forma == NULL || forma->dados == NULL)
+    FormaInternal *f = (FormaInternal*)forma;
+    if (f == NULL || f->dados == NULL)
     {
         return NULL;
     }
 
     void *clone_data = NULL;
 
-    switch (forma->tipo)
+    switch (f->tipo)
     {
-    case TIPO_CIRCULO:
-        clone_data = clonaCirculo((Circulo *)forma->dados);
-        break;
-    case TIPO_RETANGULO:
-        clone_data = clonaRetangulo((Retangulo *)forma->dados);
-        break;
-    case TIPO_LINHA:
-        clone_data = clonaLinha((Linha *)forma->dados);
-        break;
-    case TIPO_TEXTO:
-        clone_data = clonaTexto((Texto *)forma->dados);
-        break;
+        case TIPO_CIRCULO:
+            clone_data = clonaCirculo((Circulo)f->dados);
+            break;
+        case TIPO_RETANGULO:
+            clone_data = clonaRetangulo((Retangulo)f->dados);
+            break;
+        case TIPO_LINHA:
+            clone_data = clonaLinha((Linha)f->dados);
+            break;
+        case TIPO_TEXTO:
+            clone_data = clonaTexto((Texto)f->dados);
+            break;
     }
 
     if (clone_data == NULL)
@@ -148,5 +167,5 @@ Forma *clonaForma(Forma *forma)
         return NULL;
     }
 
-    return criaForma(forma->tipo, clone_data);
+    return criaForma(f->tipo, clone_data);
 }
