@@ -39,6 +39,9 @@ PONTO_SRC = $(LIB_DIR)/geometria/ponto/ponto.c
 SEGMENTO_SRC = $(LIB_DIR)/geometria/segmento/segmento.c
 CALCULOS_SRC = $(LIB_DIR)/geometria/calculos/calculos.c
 
+# Árvore de segmentos ativos
+ARVORE_SRC = $(LIB_DIR)/estruturas/arvore/arvore.c
+
 # Arquivo principal
 MAIN_SRC = main.c
 
@@ -57,7 +60,8 @@ SOURCES = $(ARGUMENTOS_SRC) \
           $(SVG_SRC) \
           $(PONTO_SRC) \
           $(SEGMENTO_SRC) \
-          $(CALCULOS_SRC)
+          $(CALCULOS_SRC) \
+          $(ARVORE_SRC)
 
 OBJECTS = $(patsubst %.c,$(BUILD_DIR)/%.o,$(notdir $(SOURCES)))
 MAIN_OBJ = $(BUILD_DIR)/main.o
@@ -68,6 +72,7 @@ MAIN_OBJ = $(BUILD_DIR)/main.o
 
 INCLUDES = -I$(LIB_DIR)/argumentos \
            -I$(LIB_DIR)/estruturas/lista \
+           -I$(LIB_DIR)/estruturas/arvore \
            -I$(LIB_DIR)/formas/circulo \
            -I$(LIB_DIR)/formas/retangulo \
            -I$(LIB_DIR)/formas/linha \
@@ -131,6 +136,9 @@ $(BUILD_DIR)/segmento.o: $(SEGMENTO_SRC)
 	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
 $(BUILD_DIR)/calculos.o: $(CALCULOS_SRC)
+	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+
+$(BUILD_DIR)/arvore.o: $(ARVORE_SRC)
 	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
 $(BUILD_DIR)/main.o: $(MAIN_SRC)
