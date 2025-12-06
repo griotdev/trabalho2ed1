@@ -151,7 +151,7 @@ void svg_desenhar_circulo(SvgContexto svg, Circulo c)
     
     fprintf(ctx->arquivo,
             "  <circle cx=\"%.2f\" cy=\"%.2f\" r=\"%.2f\" "
-            "stroke=\"%s\" fill=\"%s\" stroke-width=\"1\"/>\n",
+            "stroke=\"%s\" fill=\"%s\" fill-opacity=\"0.6\" stroke-width=\"1\"/>\n",
             getCirculoX(c),
             getCirculoY(c),
             getCirculoRaio(c),
@@ -166,7 +166,7 @@ void svg_desenhar_retangulo(SvgContexto svg, Retangulo r)
     
     fprintf(ctx->arquivo,
             "  <rect x=\"%.2f\" y=\"%.2f\" width=\"%.2f\" height=\"%.2f\" "
-            "stroke=\"%s\" fill=\"%s\" stroke-width=\"1\"/>\n",
+            "stroke=\"%s\" fill=\"%s\" fill-opacity=\"0.6\" stroke-width=\"1\"/>\n",
             getRetanguloX(r),
             getRetanguloY(r),
             getRetanguloLargura(r),

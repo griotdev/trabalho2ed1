@@ -147,11 +147,7 @@ int argumentos_validos(Argumentos argumentos)
     }
 
     /* Verifica se os argumentos obrigatórios foram fornecidos */
-    if (args->diretorio_entrada == NULL)
-    {
-        fprintf(stderr, "Erro: diretório de entrada (-e) não especificado.\n");
-        return 0;
-    }
+    /* Apenas -f e -o são obrigatórios */
     if (args->arquivo_geo == NULL)
     {
         fprintf(stderr, "Erro: arquivo .geo (-f) não especificado.\n");
@@ -168,16 +164,18 @@ int argumentos_validos(Argumentos argumentos)
 
 void exibir_uso(const char *nome_programa)
 {
-    printf("Uso: %s -e <dir_entrada> -f <arquivo.geo> -o <dir_saida> [-q <arquivo.qry>]\n\n", 
+    printf("Uso: %s -f <arquivo.geo> -o <dir_saida> [-e <dir_entrada>] [-q <arquivo.qry>]\n\n", 
            nome_programa ? nome_programa : "t2");
     printf("Opções:\n");
-    printf("  -e <diretório>   Diretório base de entrada (arquivos .geo e .qry)\n");
-    printf("  -f <arquivo>     Nome do arquivo de geometria (.geo)\n");
-    printf("  -o <diretório>   Diretório de saída (arquivos .svg e .txt)\n");
-    printf("  -q <arquivo>     Nome do arquivo de consultas (.qry) [opcional]\n");
+    printf("  -f <arquivo>     Caminho do arquivo de geometria (.geo) [OBRIGATÓRIO]\n");
+    printf("  -o <diretório>   Diretório de saída (arquivos .svg e .txt) [OBRIGATÓRIO]\n");
+    printf("  -e <diretório>   Diretório base de entrada [opcional]\n");
+    printf("  -q <arquivo>     Caminho do arquivo de consultas (.qry) [opcional]\n");
     printf("  -h, --help       Exibe esta mensagem de ajuda\n\n");
-    printf("Exemplo:\n");
-    printf("  %s -e ./dados -f mapa.geo -o ./saida -q consulta.qry\n",
+    printf("Exemplos:\n");
+    printf("  %s -f ./dados/mapa.geo -o ./saida\n",
+           nome_programa ? nome_programa : "t2");
+    printf("  %s -f mapa.geo -o ./saida -e ./dados -q consulta.qry\n",
            nome_programa ? nome_programa : "t2");
 }
 
@@ -188,13 +186,23 @@ int construir_caminho_geo(Argumentos argumentos, char *buffer, int tamanho_buffe
     {
         return 0;
     }
-    if (args->diretorio_entrada == NULL || args->arquivo_geo == NULL)
+    if (args->arquivo_geo == NULL)
     {
         return 0;
     }
 
-    int necessario = snprintf(buffer, tamanho_buffer, "%s/%s", 
+    int necessario;
+    if (args->diretorio_entrada != NULL)
+    {
+        /* Se tem diretório de entrada, concatena */
+        necessario = snprintf(buffer, tamanho_buffer, "%s/%s", 
                               args->diretorio_entrada, args->arquivo_geo);
+    }
+    else
+    {
+        /* Se não tem, usa o caminho do arquivo diretamente */
+        necessario = snprintf(buffer, tamanho_buffer, "%s", args->arquivo_geo);
+    }
     
     if (necessario >= tamanho_buffer)
     {
@@ -212,13 +220,23 @@ int construir_caminho_qry(Argumentos argumentos, char *buffer, int tamanho_buffe
     {
         return 0;
     }
-    if (args->diretorio_entrada == NULL || args->arquivo_qry == NULL)
+    if (args->arquivo_qry == NULL)
     {
         return 0;
     }
 
-    int necessario = snprintf(buffer, tamanho_buffer, "%s/%s", 
+    int necessario;
+    if (args->diretorio_entrada != NULL)
+    {
+        /* Se tem diretório de entrada, concatena */
+        necessario = snprintf(buffer, tamanho_buffer, "%s/%s", 
                               args->diretorio_entrada, args->arquivo_qry);
+    }
+    else
+    {
+        /* Se não tem, usa o caminho do arquivo diretamente */
+        necessario = snprintf(buffer, tamanho_buffer, "%s", args->arquivo_qry);
+    }
     
     if (necessario >= tamanho_buffer)
     {

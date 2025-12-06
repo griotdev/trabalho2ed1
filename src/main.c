@@ -44,18 +44,29 @@ static int arquivo_existe(const char *caminho)
 }
 
 /**
- * Extrai o nome base do arquivo (sem extensão).
- * Exemplo: "mapa.geo" -> "mapa"
+ * Extrai o nome base do arquivo (sem diretório e sem extensão).
+ * Exemplo: "../testes/mapa.geo" -> "mapa"
  */
-static void extrair_nome_base(const char *nome_arquivo, char *nome_base, int tamanho)
+static void extrair_nome_base(const char *caminho_arquivo, char *nome_base, int tamanho)
 {
-    if (nome_arquivo == NULL || nome_base == NULL)
+    if (caminho_arquivo == NULL || nome_base == NULL)
     {
         return;
     }
 
+    /* Encontra o último separador de diretório */
+    const char *nome = strrchr(caminho_arquivo, '/');
+    if (nome != NULL)
+    {
+        nome++; /* Pula o '/' */
+    }
+    else
+    {
+        nome = caminho_arquivo; /* Não tem diretório */
+    }
+
     /* Copia o nome do arquivo */
-    strncpy(nome_base, nome_arquivo, tamanho - 1);
+    strncpy(nome_base, nome, tamanho - 1);
     nome_base[tamanho - 1] = '\0';
 
     /* Remove a extensão */

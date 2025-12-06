@@ -17,3 +17,8 @@ t2
 
 # Arquivos de debug
 *.dSYM/
+
+# Arquivos de entrada/saída
+*.geo
+*.qry
+*.svg
