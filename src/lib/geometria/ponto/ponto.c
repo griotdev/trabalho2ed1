@@ -65,19 +65,19 @@ void destruir_ponto(Ponto ponto)
  * Implementação das Funções de Acesso
  * ============================================================================ */
 
-double ponto_obter_x(Ponto ponto)
+double get_ponto_x(Ponto ponto)
 {
     PontoInternal *p = (PontoInternal*)ponto;
     return p ? p->x : 0.0;
 }
 
-double ponto_obter_y(Ponto ponto)
+double get_ponto_y(Ponto ponto)
 {
     PontoInternal *p = (PontoInternal*)ponto;
     return p ? p->y : 0.0;
 }
 
-void ponto_definir_x(Ponto ponto, double x)
+void set_ponto_x(Ponto ponto, double x)
 {
     PontoInternal *p = (PontoInternal*)ponto;
     if (p != NULL)
@@ -86,7 +86,7 @@ void ponto_definir_x(Ponto ponto, double x)
     }
 }
 
-void ponto_definir_y(Ponto ponto, double y)
+void set_ponto_y(Ponto ponto, double y)
 {
     PontoInternal *p = (PontoInternal*)ponto;
     if (p != NULL)
@@ -95,7 +95,7 @@ void ponto_definir_y(Ponto ponto, double y)
     }
 }
 
-void ponto_definir(Ponto ponto, double x, double y)
+void set_ponto(Ponto ponto, double x, double y)
 {
     PontoInternal *p = (PontoInternal*)ponto;
     if (p != NULL)

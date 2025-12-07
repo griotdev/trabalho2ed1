@@ -24,12 +24,12 @@ double produto_vetorial(Ponto p1, Ponto p2, Ponto p3)
 {
     if (p1 == NULL || p2 == NULL || p3 == NULL) return 0.0;
     
-    double x1 = ponto_obter_x(p1);
-    double y1 = ponto_obter_y(p1);
-    double x2 = ponto_obter_x(p2);
-    double y2 = ponto_obter_y(p2);
-    double x3 = ponto_obter_x(p3);
-    double y3 = ponto_obter_y(p3);
+    double x1 = get_ponto_x(p1);
+    double y1 = get_ponto_y(p1);
+    double x2 = get_ponto_x(p2);
+    double y2 = get_ponto_y(p2);
+    double x3 = get_ponto_x(p3);
+    double y3 = get_ponto_y(p3);
     
     /* (P2 - P1) x (P3 - P1) */
     return (x2 - x1) * (y3 - y1) - (y2 - y1) * (x3 - x1);
@@ -84,15 +84,15 @@ int intersecao_raio_segmento(Ponto origem, Ponto direcao, Segmento seg, Ponto *r
         return 0;
     }
     
-    double ox = ponto_obter_x(origem);
-    double oy = ponto_obter_y(origem);
-    double dx = ponto_obter_x(direcao) - ox;
-    double dy = ponto_obter_y(direcao) - oy;
+    double ox = get_ponto_x(origem);
+    double oy = get_ponto_y(origem);
+    double dx = get_ponto_x(direcao) - ox;
+    double dy = get_ponto_y(direcao) - oy;
     
-    double sx1 = segmento_obter_x1(seg);
-    double sy1 = segmento_obter_y1(seg);
-    double sx2 = segmento_obter_x2(seg);
-    double sy2 = segmento_obter_y2(seg);
+    double sx1 = get_segmento_x1(seg);
+    double sy1 = get_segmento_y1(seg);
+    double sx2 = get_segmento_x2(seg);
+    double sy2 = get_segmento_y2(seg);
     
     /* Vetor do segmento */
     double segx = sx2 - sx1;
@@ -129,17 +129,17 @@ double distancia_raio_segmento(Ponto origem, double angulo, Segmento seg)
 {
     if (origem == NULL || seg == NULL) return INFINITY;
     
-    double ox = ponto_obter_x(origem);
-    double oy = ponto_obter_y(origem);
+    double ox = get_ponto_x(origem);
+    double oy = get_ponto_y(origem);
     
     /* Criar ponto de direção */
     double dx = cos(angulo);
     double dy = sin(angulo);
     
-    double sx1 = segmento_obter_x1(seg);
-    double sy1 = segmento_obter_y1(seg);
-    double sx2 = segmento_obter_x2(seg);
-    double sy2 = segmento_obter_y2(seg);
+    double sx1 = get_segmento_x1(seg);
+    double sy1 = get_segmento_y1(seg);
+    double sx2 = get_segmento_x2(seg);
+    double sy2 = get_segmento_y2(seg);
     
     double segx = sx2 - sx1;
     double segy = sy2 - sy1;

@@ -164,11 +164,11 @@ static Lista extrair_eventos(Lista segmentos, Ponto origem)
         Segmento seg = (Segmento)obter_elemento(atual);
         
         /* Evento de início (p1) */
-        Evento *e1 = criar_evento(segmento_obter_p1(seg), EVENTO_INICIO, seg, origem);
+        Evento *e1 = criar_evento(get_segmento_p1(seg), EVENTO_INICIO, seg, origem);
         if (e1 != NULL) inserir_fim(eventos, e1);
         
         /* Evento de fim (p2) */
-        Evento *e2 = criar_evento(segmento_obter_p2(seg), EVENTO_FIM, seg, origem);
+        Evento *e2 = criar_evento(get_segmento_p2(seg), EVENTO_FIM, seg, origem);
         if (e2 != NULL) inserir_fim(eventos, e2);
         
         atual = obter_proximo(atual);
@@ -306,7 +306,7 @@ PoligonoVisibilidade calcular_visibilidade(Ponto origem, Lista segmentos_entrada
     
     if (biombo != NULL)
     {
-        Ponto dir = criar_ponto(ponto_obter_x(origem) + 1000, ponto_obter_y(origem));
+        Ponto dir = criar_ponto(get_ponto_x(origem) + 1000, get_ponto_y(origem));
         Ponto intersecao = NULL;
         
         if (intersecao_raio_segmento(origem, dir, biombo, &intersecao))

@@ -42,27 +42,27 @@ void destruir_ponto(Ponto p);
 /**
  * Obtém a coordenada X do ponto.
  */
-double ponto_obter_x(Ponto p);
+double get_ponto_x(Ponto p);
 
 /**
  * Obtém a coordenada Y do ponto.
  */
-double ponto_obter_y(Ponto p);
+double get_ponto_y(Ponto p);
 
 /**
  * Define a coordenada X do ponto.
  */
-void ponto_definir_x(Ponto p, double x);
+void set_ponto_x(Ponto p, double x);
 
 /**
  * Define a coordenada Y do ponto.
  */
-void ponto_definir_y(Ponto p, double y);
+void set_ponto_y(Ponto p, double y);
 
 /**
  * Define ambas coordenadas do ponto.
  */
-void ponto_definir(Ponto p, double x, double y);
+void set_ponto(Ponto p, double x, double y);
 
 /* ============================================================================
  * Funções Geométricas

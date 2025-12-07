@@ -62,39 +62,39 @@ void destruir_segmento(Segmento seg);
 /**
  * Obtém o ID do segmento.
  */
-int segmento_obter_id(Segmento seg);
+int get_segmento_id(Segmento seg);
 
 /**
  * Obtém o ponto inicial do segmento.
  * @note NÃO modifique nem destrua o ponto retornado!
  */
-Ponto segmento_obter_p1(Segmento seg);
+Ponto get_segmento_p1(Segmento seg);
 
 /**
  * Obtém o ponto final do segmento.
  * @note NÃO modifique nem destrua o ponto retornado!
  */
-Ponto segmento_obter_p2(Segmento seg);
+Ponto get_segmento_p2(Segmento seg);
 
 /**
  * Obtém coordenada X1 do ponto inicial.
  */
-double segmento_obter_x1(Segmento seg);
+double get_segmento_x1(Segmento seg);
 
 /**
  * Obtém coordenada Y1 do ponto inicial.
  */
-double segmento_obter_y1(Segmento seg);
+double get_segmento_y1(Segmento seg);
 
 /**
  * Obtém coordenada X2 do ponto final.
  */
-double segmento_obter_x2(Segmento seg);
+double get_segmento_x2(Segmento seg);
 
 /**
  * Obtém coordenada Y2 do ponto final.
  */
-double segmento_obter_y2(Segmento seg);
+double get_segmento_y2(Segmento seg);
 
 /* ============================================================================
  * Funções Geométricas

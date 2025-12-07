@@ -53,8 +53,8 @@ Segmento criar_segmento_pontos(int id, Ponto p1, Ponto p2)
     if (p1 == NULL || p2 == NULL) return NULL;
     
     return criar_segmento(id, 
-                          ponto_obter_x(p1), ponto_obter_y(p1),
-                          ponto_obter_x(p2), ponto_obter_y(p2));
+                          get_ponto_x(p1), get_ponto_y(p1),
+                          get_ponto_x(p2), get_ponto_y(p2));
 }
 
 Segmento clonar_segmento(Segmento segmento)
@@ -63,8 +63,8 @@ Segmento clonar_segmento(Segmento segmento)
     if (seg == NULL) return NULL;
     
     return criar_segmento(seg->id,
-                          ponto_obter_x(seg->p1), ponto_obter_y(seg->p1),
-                          ponto_obter_x(seg->p2), ponto_obter_y(seg->p2));
+                          get_ponto_x(seg->p1), get_ponto_y(seg->p1),
+                          get_ponto_x(seg->p2), get_ponto_y(seg->p2));
 }
 
 void destruir_segmento(Segmento segmento)
@@ -81,46 +81,46 @@ void destruir_segmento(Segmento segmento)
  * Implementação das Funções de Acesso
  * ============================================================================ */
 
-int segmento_obter_id(Segmento segmento)
+int get_segmento_id(Segmento segmento)
 {
     SegmentoInternal *seg = (SegmentoInternal*)segmento;
     return seg ? seg->id : -1;
 }
 
-Ponto segmento_obter_p1(Segmento segmento)
+Ponto get_segmento_p1(Segmento segmento)
 {
     SegmentoInternal *seg = (SegmentoInternal*)segmento;
     return seg ? seg->p1 : NULL;
 }
 
-Ponto segmento_obter_p2(Segmento segmento)
+Ponto get_segmento_p2(Segmento segmento)
 {
     SegmentoInternal *seg = (SegmentoInternal*)segmento;
     return seg ? seg->p2 : NULL;
 }
 
-double segmento_obter_x1(Segmento segmento)
+double get_segmento_x1(Segmento segmento)
 {
     SegmentoInternal *seg = (SegmentoInternal*)segmento;
-    return seg ? ponto_obter_x(seg->p1) : 0.0;
+    return seg ? get_ponto_x(seg->p1) : 0.0;
 }
 
-double segmento_obter_y1(Segmento segmento)
+double get_segmento_y1(Segmento segmento)
 {
     SegmentoInternal *seg = (SegmentoInternal*)segmento;
-    return seg ? ponto_obter_y(seg->p1) : 0.0;
+    return seg ? get_ponto_y(seg->p1) : 0.0;
 }
 
-double segmento_obter_x2(Segmento segmento)
+double get_segmento_x2(Segmento segmento)
 {
     SegmentoInternal *seg = (SegmentoInternal*)segmento;
-    return seg ? ponto_obter_x(seg->p2) : 0.0;
+    return seg ? get_ponto_x(seg->p2) : 0.0;
 }
 
-double segmento_obter_y2(Segmento segmento)
+double get_segmento_y2(Segmento segmento)
 {
     SegmentoInternal *seg = (SegmentoInternal*)segmento;
-    return seg ? ponto_obter_y(seg->p2) : 0.0;
+    return seg ? get_ponto_y(seg->p2) : 0.0;
 }
 
 /* ============================================================================
@@ -145,13 +145,13 @@ int segmento_dividir(Segmento segmento, Ponto ponto, Segmento *seg1, Segmento *s
     
     /* Primeiro segmento: p1 até ponto de divisão */
     *seg1 = criar_segmento(seg->id,
-                           ponto_obter_x(seg->p1), ponto_obter_y(seg->p1),
-                           ponto_obter_x(ponto), ponto_obter_y(ponto));
+                           get_ponto_x(seg->p1), get_ponto_y(seg->p1),
+                           get_ponto_x(ponto), get_ponto_y(ponto));
     
     /* Segundo segmento: ponto de divisão até p2 */
     *seg2 = criar_segmento(seg->id,
-                           ponto_obter_x(ponto), ponto_obter_y(ponto),
-                           ponto_obter_x(seg->p2), ponto_obter_y(seg->p2));
+                           get_ponto_x(ponto), get_ponto_y(ponto),
+                           get_ponto_x(seg->p2), get_ponto_y(seg->p2));
     
     return (*seg1 != NULL && *seg2 != NULL);
 }
