@@ -42,6 +42,9 @@ CALCULOS_SRC = $(LIB_DIR)/geometria/calculos/calculos.c
 # Árvore de segmentos ativos
 ARVORE_SRC = $(LIB_DIR)/estruturas/arvore/arvore.c
 
+# Visibilidade
+VISIBILIDADE_SRC = $(LIB_DIR)/visibilidade/visibilidade.c
+
 # Arquivo principal
 MAIN_SRC = main.c
 
@@ -61,7 +64,8 @@ SOURCES = $(ARGUMENTOS_SRC) \
           $(PONTO_SRC) \
           $(SEGMENTO_SRC) \
           $(CALCULOS_SRC) \
-          $(ARVORE_SRC)
+          $(ARVORE_SRC) \
+          $(VISIBILIDADE_SRC)
 
 OBJECTS = $(patsubst %.c,$(BUILD_DIR)/%.o,$(notdir $(SOURCES)))
 MAIN_OBJ = $(BUILD_DIR)/main.o
@@ -82,7 +86,8 @@ INCLUDES = -I$(LIB_DIR)/argumentos \
            -I$(LIB_DIR)/geo/svg \
            -I$(LIB_DIR)/geometria/ponto \
            -I$(LIB_DIR)/geometria/segmento \
-           -I$(LIB_DIR)/geometria/calculos
+           -I$(LIB_DIR)/geometria/calculos \
+           -I$(LIB_DIR)/visibilidade
 
 # =============================================================================
 # Regras principais
@@ -139,6 +144,9 @@ $(BUILD_DIR)/calculos.o: $(CALCULOS_SRC)
 	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
 $(BUILD_DIR)/arvore.o: $(ARVORE_SRC)
+	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+
+$(BUILD_DIR)/visibilidade.o: $(VISIBILIDADE_SRC)
 	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
 $(BUILD_DIR)/main.o: $(MAIN_SRC)
