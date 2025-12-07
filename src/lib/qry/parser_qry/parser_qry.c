@@ -1,0 +1,195 @@
+/* parser_qry.c
+ *
+ * Implementação do parser de arquivos .qry
+ */
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+
+#include "parser_qry.h"
+#include "cmd_a.h"
+#include "cmd_d.h"
+#include "cmd_p.h"
+#include "cmd_cln.h"
+#include "ponto.h"
+
+#define MAX_LINHA 512
+
+/* ============================================================================
+ * Funções Auxiliares
+ * ============================================================================ */
+
+/**
+ * Remove espaços do início e fim da string.
+ */
+static char* trim(char *str)
+{
+    if (str == NULL) return NULL;
+    
+    while (isspace((unsigned char)*str)) str++;
+    if (*str == '\0') return str;
+    
+    char *end = str + strlen(str) - 1;
+    while (end > str && isspace((unsigned char)*end)) end--;
+    end[1] = '\0';
+    
+    return str;
+}
+
+/* ============================================================================
+ * Implementação
+ * ============================================================================ */
+
+int processar_arquivo_qry(const char *caminho_qry,
+                          Lista lista_formas,
+                          Lista lista_anteparos,
+                          const char *dir_saida,
+                          const char *nome_base,
+                          double bbox[4])
+{
+    if (caminho_qry == NULL)
+    {
+        fprintf(stderr, "Erro: caminho do arquivo .qry é NULL\n");
+        return -1;
+    }
+    
+    FILE *arquivo = fopen(caminho_qry, "r");
+    if (arquivo == NULL)
+    {
+        fprintf(stderr, "Erro: não foi possível abrir %s\n", caminho_qry);
+        return -1;
+    }
+    
+    char linha[MAX_LINHA];
+    int num_comandos = 0;
+    int num_linha = 0;
+    int proximo_id = 10000; /* IDs para clones */
+    
+    printf("    Processando comandos...\n");
+    
+    while (fgets(linha, MAX_LINHA, arquivo) != NULL)
+    {
+        num_linha++;
+        char *linha_limpa = trim(linha);
+        
+        /* Ignora linhas vazias e comentários */
+        if (linha_limpa[0] == '\0' || linha_limpa[0] == '#')
+        {
+            continue;
+        }
+        
+        /* Identifica o comando */
+        if (linha_limpa[0] == 'a' && isspace((unsigned char)linha_limpa[1]))
+        {
+            /* Comando 'a i j [v|h]' */
+            int id_inicio, id_fim;
+            char orientacao = 'h'; /* default */
+            
+            int lidos = sscanf(linha_limpa, "a %d %d %c", &id_inicio, &id_fim, &orientacao);
+            if (lidos >= 2)
+            {
+                printf("      [a] Anteparo IDs %d a %d (orient=%c)\n", 
+                       id_inicio, id_fim, orientacao);
+                       
+                int convertidos = executar_cmd_a(lista_formas, lista_anteparos, 
+                                                  id_inicio, id_fim, orientacao);
+                printf("          %d formas convertidas\n", convertidos);
+                num_comandos++;
+            }
+            else
+            {
+                fprintf(stderr, "Aviso: formato inválido na linha %d: %s\n", 
+                        num_linha, linha_limpa);
+            }
+        }
+        else if (linha_limpa[0] == 'd' && isspace((unsigned char)linha_limpa[1]))
+        {
+            /* Comando 'd x y sfx' */
+            double x, y;
+            char sufixo[100];
+            
+            int lidos = sscanf(linha_limpa, "d %lf %lf %99s", &x, &y, sufixo);
+            if (lidos == 3)
+            {
+                printf("      [d] Destruição em (%.2f, %.2f) sfx=%s\n", x, y, sufixo);
+                
+                Ponto origem = criar_ponto(x, y);
+                int destruidos = executar_cmd_d(origem, lista_formas, lista_anteparos,
+                                                 dir_saida, nome_base, sufixo, bbox);
+                destruir_ponto(origem);
+                
+                printf("          %d formas destruídas\n", destruidos);
+                num_comandos++;
+            }
+            else
+            {
+                fprintf(stderr, "Aviso: formato inválido na linha %d: %s\n", 
+                        num_linha, linha_limpa);
+            }
+        }
+        else if (linha_limpa[0] == 'P' && isspace((unsigned char)linha_limpa[1]))
+        {
+            /* Comando 'P x y cor sfx' */
+            double x, y;
+            char cor[50], sufixo[100];
+            
+            int lidos = sscanf(linha_limpa, "P %lf %lf %49s %99s", &x, &y, cor, sufixo);
+            if (lidos == 4)
+            {
+                printf("      [P] Pintura em (%.2f, %.2f) cor=%s sfx=%s\n", x, y, cor, sufixo);
+                
+                Ponto origem = criar_ponto(x, y);
+                int pintados = executar_cmd_p(origem, lista_formas, lista_anteparos,
+                                               cor, dir_saida, nome_base, sufixo, bbox);
+                destruir_ponto(origem);
+                
+                printf("          %d formas pintadas\n", pintados);
+                num_comandos++;
+            }
+            else
+            {
+                fprintf(stderr, "Aviso: formato inválido na linha %d: %s\n", 
+                        num_linha, linha_limpa);
+            }
+        }
+        else if (strncmp(linha_limpa, "cln", 3) == 0 && isspace((unsigned char)linha_limpa[3]))
+        {
+            /* Comando 'cln x y dx dy sfx' */
+            double x, y, dx, dy;
+            char sufixo[100];
+            
+            int lidos = sscanf(linha_limpa, "cln %lf %lf %lf %lf %99s", &x, &y, &dx, &dy, sufixo);
+            if (lidos == 5)
+            {
+                printf("      [cln] Clonagem em (%.2f, %.2f) delta=(%.2f, %.2f) sfx=%s\n", 
+                       x, y, dx, dy, sufixo);
+                
+                Ponto origem = criar_ponto(x, y);
+                int clonados = executar_cmd_cln(origem, lista_formas, lista_anteparos,
+                                                 dx, dy, dir_saida, nome_base, sufixo, 
+                                                 bbox, &proximo_id);
+                destruir_ponto(origem);
+                
+                printf("          %d formas clonadas\n", clonados);
+                num_comandos++;
+            }
+            else
+            {
+                fprintf(stderr, "Aviso: formato inválido na linha %d: %s\n", 
+                        num_linha, linha_limpa);
+            }
+        }
+        else
+        {
+            fprintf(stderr, "Aviso: comando desconhecido na linha %d: %s\n", 
+                    num_linha, linha_limpa);
+        }
+    }
+    
+    fclose(arquivo);
+    
+    printf("    Total: %d comandos processados\n", num_comandos);
+    return num_comandos;
+}

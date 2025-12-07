@@ -23,3 +23,9 @@ ted
 #*.geo
 #*.qry
 #*.svg
+
+# Diretórios de comandos QRY (em desenvolvimento)
+src/lib/qry/cmd_a/
+src/lib/qry/cmd_cln/
+src/lib/qry/cmd_d/
+src/lib/qry/cmd_p/

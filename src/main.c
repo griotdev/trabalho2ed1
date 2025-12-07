@@ -18,6 +18,8 @@
 #include "formas.h"
 #include "parser_geo.h"
 #include "svg.h"
+#include "parser_qry.h"
+#include "segmento.h"
 
 /* Tamanho máximo para caminhos de arquivo */
 #define MAX_CAMINHO 1024
@@ -266,9 +268,30 @@ int main(int argc, char *argv[])
     if (tem_qry)
     {
         printf("\n[8] Processamento de consultas (.qry)...\n");
-        printf("    [TODO] Módulo QRY ainda não implementado.\n");
-        printf("    Arquivo a processar: %s\n", caminho_qry);
-        printf("    Comandos suportados: a (anteparo), d (destruição), P (pintura), cln (clonagem)\n");
+        
+        /* Cria lista de anteparos (segmentos bloqueantes) */
+        Lista lista_anteparos = criar_lista();
+        
+        /* Bounding box para visibilidade */
+        double bbox[4] = {min_x, min_y, max_x, max_y};
+        
+        /* Processa o arquivo .qry */
+        int comandos = processar_arquivo_qry(
+            caminho_qry,
+            lista_formas,
+            lista_anteparos,
+            obter_diretorio_saida(args),
+            nome_base,
+            bbox
+        );
+        
+        if (comandos >= 0)
+        {
+            printf("    [OK] %d comandos processados\n", comandos);
+        }
+        
+        /* Limpa lista de anteparos */
+        destruir_lista(lista_anteparos, (FuncaoDestruir)destruir_segmento);
     }
     else
     {
