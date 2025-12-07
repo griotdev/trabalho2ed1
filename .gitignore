@@ -28,4 +28,4 @@ ted
 #src/lib/qry/cmd_a/
 #src/lib/qry/cmd_cln/
 #src/lib/qry/cmd_d/
-src/lib/qry/cmd_p/
+#src/lib/qry/cmd_p/
