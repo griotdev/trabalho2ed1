@@ -12,10 +12,8 @@ cln: dx=270.00 dy=270.00
 d:
   86 linha
   94 texto
-  10 circulo
   93 texto
   85 linha
-  11 circulo
   92 texto
   78 circulo
   79 circulo

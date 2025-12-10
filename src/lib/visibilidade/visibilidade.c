@@ -250,9 +250,76 @@ PoligonoVisibilidade calcular_visibilidade(Ponto origem, Lista segmentos_entrada
         }
     }
     
+    /* Expande bounding box para incluir a origem */
+    double ox = get_ponto_x(origem);
+    double oy = get_ponto_y(origem);
+    if (ox < min_x) min_x = ox;
+    if (ox > max_x) max_x = ox;
+    if (oy < min_y) min_y = oy;
+    if (oy > max_y) max_y = oy;
+    
     /* Adiciona bounding box */
     criar_bounding_box(segmentos, min_x, min_y, max_x, max_y);
     
+    /* ========================================================================
+     * PRÉ-PROCESSAMENTO: Divisão de Segmentos no Ângulo 0
+     * Garante que nenhum segmento "atravesse" a descontinuidade 2PI -> 0
+     * ======================================================================== */
+    No node_seg = obter_primeiro(segmentos);
+    while (node_seg != NULL)
+    {
+        Segmento seg = (Segmento)obter_elemento(node_seg);
+        No proximo_node = obter_proximo(node_seg); /* Salva próximo pois podemos alterar lista */
+        
+        /* Raio horizontal para a direita */
+        Ponto dir_zero = criar_ponto(get_ponto_x(origem) + 1.0, get_ponto_y(origem));
+        Ponto intersecao = NULL;
+        
+        /* Verifica interseção estrita (não nas pontas) */
+        /* intersecao_raio_segmento retorna interseção. Precisamos saber se é "no meio" */
+        if (intersecao_raio_segmento(origem, dir_zero, seg, &intersecao))
+        {
+            double ix = get_ponto_x(intersecao);
+            double iy = get_ponto_y(intersecao);
+            
+            double x1 = get_segmento_x1(seg);
+            double y1 = get_segmento_y1(seg);
+            double x2 = get_segmento_x2(seg);
+            double y2 = get_segmento_y2(seg);
+            
+            /* Verifica se interseção é diferente das pontas (com tolerância) */
+            if (hypot(get_ponto_x(intersecao) - x1, get_ponto_y(intersecao) - y1) > EPSILON &&
+                hypot(get_ponto_x(intersecao) - x2, get_ponto_y(intersecao) - y2) > EPSILON)
+            {
+                /* Divide o segmento em dois: P1->Intersecao e Intersecao->P2 */
+                
+                /* Preserva ID e cor */
+                int id = get_segmento_id(seg);
+                const char *cor = get_segmento_cor(seg);
+                
+                Segmento s1 = criar_segmento(id, x1, y1, ix, iy, cor);
+                Segmento s2 = criar_segmento(id, ix, iy, x2, y2, cor);
+                
+                inserir_fim(segmentos, s1);
+                inserir_fim(segmentos, s2);
+                
+                /* Remove o original da lista e memória */
+                void *removido = remover_no(segmentos, node_seg);
+                if (removido) destruir_segmento((Segmento)removido);
+                /* Nota: `proximo_node` pode ter sido invalidado se `remover_elemento`
+                   mexeu na estrutura? List implementation usually safe if we hold next ptr.
+                   Mas se `seg` era o último, `proximo_node` era NULL.
+                   Inserimos novos no fim. Loop continua nos novos.
+                   Novos não cruzam 0 (tocam). Então if falha. OK. */
+            }
+            
+            destruir_ponto(intersecao);
+        }
+        
+        destruir_ponto(dir_zero); 
+        node_seg = proximo_node;
+    }
+
     /* Extrai eventos (vértices) */
     Lista eventos = extrair_eventos(segmentos, origem);
     if (eventos == NULL || lista_vazia(eventos))

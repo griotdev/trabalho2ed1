@@ -1,0 +1,13 @@
+# Teste de Pintura (p)
+
+# 1. Transforma Circulo (ID 1) em anteparo
+a 1 1 v
+
+# 2. Pinta o que for visivel de (50, 200) com cor "pink"
+# O circulo (ID 1) agora eh um segmento, entao ele bloqueia.
+# O retangulo (ID 2) esta atras do circulo. Deve ser sombreado.
+P 50 200 pink -
+
+# 3. Pinta a partir de (250, 300) (olhando de baixo/diagonal) cor "purple"
+# Deve pegar o retangulo (ID 2) que estava escondido antes
+P 250 300 purple -

@@ -62,7 +62,9 @@ static int forma_visivel(Forma forma, double *vertices, int num_vertices)
         return 0;
     }
     
-    return forma_no_poligono(forma, vertices, num_vertices);
+    int visivel = forma_no_poligono(forma, vertices, num_vertices);
+    
+    return visivel;
 }
 
 /**
@@ -208,8 +210,14 @@ int executar_cmd_cln(Ponto origem,
     }
     
     /* Converte polígono para array de vértices */
-    int num_vertices;
+    int num_vertices = 0;
     double *vertices = poligono_para_array(poligono, &num_vertices);
+    
+    if (vertices == NULL)
+    {
+        if (acumulador_poligonos == NULL) destruir_poligono_visibilidade(poligono);
+        return 0;
+    }
     
     /* Primeiro, coleta formas visíveis (não modifica lista durante iteração) */
     Lista formas_para_clonar = criar_lista();
