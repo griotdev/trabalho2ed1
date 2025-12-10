@@ -1,31 +1,10 @@
-# Arquivos objeto (compilados)
-*.o
-
-# Arquivos Markdown
-#*.md
-
-# Diretório de build
-build/
-testes/
-output/
-.agent/
+# Ignorar tudo por padrão
 *
-!src/
+
+# Permitir somente:
 !README.md
+!src/
+!src/**
 
-# Executáveis
-t2
-ted
-
-# Arquivos temporários do editor
-*~
-*.swp
-*.swo
-
-# Arquivos de debug
-*.dSYM/
-
-# Arquivos de entrada/saída
-#*.geo
-#*.qry
-#*.svg
+# Manter o próprio .gitignore
+!.gitignore
