@@ -251,6 +251,9 @@ int executar_cmd_p(Ponto origem,
         destruir_poligono_visibilidade(poligono);
     }
     
+    if (vertices != NULL) free(vertices);
+    destruir_lista(formas_pintadas, NULL);
+    
     return contador;
 }
 

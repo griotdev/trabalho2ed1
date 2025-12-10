@@ -324,6 +324,9 @@ int executar_cmd_cln(Ponto origem,
     
     (void)sufixo;
     
+    destruir_lista(formas_para_clonar, NULL);
+    destruir_lista(clones, NULL);
+    
     return contador;
 }
 
