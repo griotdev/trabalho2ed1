@@ -142,9 +142,8 @@ void svg_desenhar_segmento(SvgContexto ctx, void *seg,
  * Desenha uma lista de segmentos (anteparos) no SVG.
  * @param ctx Contexto SVG
  * @param lista Lista de segmentos
- * @param cor Cor dos segmentos
  */
-void svg_desenhar_lista_segmentos(SvgContexto ctx, Lista lista, const char *cor);
+void svg_desenhar_lista_segmentos(SvgContexto ctx, Lista lista);
 
 /**
  * Desenha uma bomba (marcador de origem de visibilidade).

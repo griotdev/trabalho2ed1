@@ -23,18 +23,22 @@
 /**
  * Converte um retângulo em 4 segmentos.
  */
+/**
+ * Converte um retângulo em 4 segmentos.
+ */
 static int converter_retangulo(Retangulo r, int id, Lista lista_segmentos)
 {
     double x = getRetanguloX(r);
     double y = getRetanguloY(r);
     double w = getRetanguloLargura(r);
     double h = getRetanguloAltura(r);
+    const char *cor = getRetanguloCorBorda(r);
     
     /* 4 lados do retângulo */
-    inserir_fim(lista_segmentos, criar_segmento(id, x, y, x+w, y));         /* baixo */
-    inserir_fim(lista_segmentos, criar_segmento(id, x+w, y, x+w, y+h));     /* direita */
-    inserir_fim(lista_segmentos, criar_segmento(id, x+w, y+h, x, y+h));     /* cima */
-    inserir_fim(lista_segmentos, criar_segmento(id, x, y+h, x, y));         /* esquerda */
+    inserir_fim(lista_segmentos, criar_segmento(id, x, y, x+w, y, cor));         /* baixo */
+    inserir_fim(lista_segmentos, criar_segmento(id, x+w, y, x+w, y+h, cor));     /* direita */
+    inserir_fim(lista_segmentos, criar_segmento(id, x+w, y+h, x, y+h, cor));     /* cima */
+    inserir_fim(lista_segmentos, criar_segmento(id, x, y+h, x, y, cor));         /* esquerda */
     
     return 4;
 }
@@ -47,16 +51,17 @@ static int converter_circulo(Circulo c, int id, Lista lista_segmentos, char orie
     double cx = getCirculoX(c);
     double cy = getCirculoY(c);
     double r = getCirculoRaio(c);
+    const char *cor = getCirculoCorBorda(c);
     
     if (orientacao == 'v')
     {
         /* Segmento vertical */
-        inserir_fim(lista_segmentos, criar_segmento(id, cx, cy-r, cx, cy+r));
+        inserir_fim(lista_segmentos, criar_segmento(id, cx, cy-r, cx, cy+r, cor));
     }
     else
     {
         /* Segmento horizontal (default) */
-        inserir_fim(lista_segmentos, criar_segmento(id, cx-r, cy, cx+r, cy));
+        inserir_fim(lista_segmentos, criar_segmento(id, cx-r, cy, cx+r, cy, cor));
     }
     
     return 1;
@@ -71,8 +76,9 @@ static int converter_linha(Linha l, int id, Lista lista_segmentos)
     double y1 = getLinhaY1(l);
     double x2 = getLinhaX2(l);
     double y2 = getLinhaY2(l);
+    const char *cor = getLinhaCor(l);
     
-    inserir_fim(lista_segmentos, criar_segmento(id, x1, y1, x2, y2));
+    inserir_fim(lista_segmentos, criar_segmento(id, x1, y1, x2, y2, cor));
     
     return 1;
 }
@@ -86,6 +92,7 @@ static int converter_texto(Texto t, int id, Lista lista_segmentos)
     double y = getTextoY(t);
     const char *conteudo = getTextoConteudo(t);
     const char *ancora = getTextoAncora(t);
+    const char *cor = getTextoCorBorda(t);
     
     double comprimento = 10.0 * strlen(conteudo);
     double x1, x2;
@@ -106,7 +113,7 @@ static int converter_texto(Texto t, int id, Lista lista_segmentos)
         x2 = x + comprimento / 2.0;
     }
     
-    inserir_fim(lista_segmentos, criar_segmento(id, x1, y, x2, y));
+    inserir_fim(lista_segmentos, criar_segmento(id, x1, y, x2, y, cor));
     
     return 1;
 }

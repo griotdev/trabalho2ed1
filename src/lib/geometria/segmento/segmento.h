@@ -29,18 +29,20 @@ typedef enum {
  * @param y1 Coordenada Y do ponto inicial
  * @param x2 Coordenada X do ponto final
  * @param y2 Coordenada Y do ponto final
+ * @param cor Cor do segmento (hex ou nome)
  * @return Novo segmento, ou NULL em caso de erro
  */
-Segmento criar_segmento(int id, double x1, double y1, double x2, double y2);
+Segmento criar_segmento(int id, double x1, double y1, double x2, double y2, const char *cor);
 
 /**
  * Cria um segmento a partir de dois pontos.
  * @param id Identificador
  * @param p1 Ponto inicial (será clonado)
  * @param p2 Ponto final (será clonado)
+ * @param cor Cor do segmento
  * @return Novo segmento, ou NULL em caso de erro
  */
-Segmento criar_segmento_pontos(int id, Ponto p1, Ponto p2);
+Segmento criar_segmento_pontos(int id, Ponto p1, Ponto p2, const char *cor);
 
 /**
  * Clona um segmento.
@@ -63,6 +65,11 @@ void destruir_segmento(Segmento seg);
  * Obtém o ID do segmento.
  */
 int get_segmento_id(Segmento seg);
+
+/**
+ * Obtém a cor do segmento.
+ */
+const char* get_segmento_cor(Segmento seg);
 
 /**
  * Obtém o ponto inicial do segmento.

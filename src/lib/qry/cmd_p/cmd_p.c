@@ -217,7 +217,7 @@ int executar_cmd_p(Ponto origem,
             /* 2. Desenha os anteparos (segmentos bloqueantes) */
             if (lista_anteparos != NULL && !lista_vazia(lista_anteparos))
             {
-                svg_desenhar_lista_segmentos(svg, lista_anteparos, "#FF6600");
+                svg_desenhar_lista_segmentos(svg, lista_anteparos);
             }
             
             /* 3. Desenha a região de visibilidade (polígono semi-transparente) */

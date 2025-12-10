@@ -311,19 +311,20 @@ void svg_desenhar_segmento(SvgContexto svg, void *seg,
     if (ctx == NULL || ctx->arquivo == NULL || seg == NULL) return;
     
     Segmento s = (Segmento)seg;
+    const char *cor_seg = cor ? cor : get_segmento_cor(s);
     
     fprintf(ctx->arquivo,
             "  <line x1=\"%.2f\" y1=\"%.2f\" x2=\"%.2f\" y2=\"%.2f\" "
-            "stroke=\"%s\" stroke-width=\"%.1f\" stroke-dasharray=\"5,3\"/>\n",
+            "stroke=\"%s\" stroke-width=\"%.1f\"/>\n",
             get_segmento_x1(s),
             get_segmento_y1(s),
             get_segmento_x2(s),
             get_segmento_y2(s),
-            cor ? cor : "black",
+            cor_seg,
             largura);
 }
 
-void svg_desenhar_lista_segmentos(SvgContexto svg, Lista lista, const char *cor)
+void svg_desenhar_lista_segmentos(SvgContexto svg, Lista lista)
 {
     SvgContextoInternal *ctx = (SvgContextoInternal*)svg;
     if (ctx == NULL || lista == NULL) return;
@@ -334,7 +335,8 @@ void svg_desenhar_lista_segmentos(SvgContexto svg, Lista lista, const char *cor)
     while (atual != NULL)
     {
         Segmento seg = (Segmento)obter_elemento(atual);
-        svg_desenhar_segmento(svg, seg, cor ? cor : "#FF6600", 2.0);
+        /* Usa NULL para forçar o uso da cor interna do segmento */
+        svg_desenhar_segmento(svg, seg, NULL, 2.0);
         atual = obter_proximo(atual);
     }
     

@@ -7,6 +7,8 @@
 #include <stdlib.h>
 #include <math.h>
 #include "segmento.h"
+#include <string.h>
+#include "segmento.h"
 #include "ponto.h"
 
 /* ============================================================================
@@ -18,13 +20,14 @@ typedef struct segmento_internal
     int id;      /* ID da forma original */
     Ponto p1;    /* Ponto inicial */
     Ponto p2;    /* Ponto final */
+    char cor[32]; /* Cor do segmento */
 } SegmentoInternal;
 
 /* ============================================================================
  * Implementação das Funções de Criação e Destruição
  * ============================================================================ */
 
-Segmento criar_segmento(int id, double x1, double y1, double x2, double y2)
+Segmento criar_segmento(int id, double x1, double y1, double x2, double y2, const char *cor)
 {
     SegmentoInternal *seg = (SegmentoInternal*)malloc(sizeof(SegmentoInternal));
     if (seg == NULL)
@@ -37,6 +40,16 @@ Segmento criar_segmento(int id, double x1, double y1, double x2, double y2)
     seg->p1 = criar_ponto(x1, y1);
     seg->p2 = criar_ponto(x2, y2);
     
+    if (cor != NULL)
+    {
+        strncpy(seg->cor, cor, 31);
+        seg->cor[31] = '\0';
+    }
+    else
+    {
+        strcpy(seg->cor, "black");
+    }
+    
     if (seg->p1 == NULL || seg->p2 == NULL)
     {
         destruir_ponto(seg->p1);
@@ -48,13 +61,14 @@ Segmento criar_segmento(int id, double x1, double y1, double x2, double y2)
     return (Segmento)seg;
 }
 
-Segmento criar_segmento_pontos(int id, Ponto p1, Ponto p2)
+Segmento criar_segmento_pontos(int id, Ponto p1, Ponto p2, const char *cor)
 {
     if (p1 == NULL || p2 == NULL) return NULL;
     
     return criar_segmento(id, 
                           get_ponto_x(p1), get_ponto_y(p1),
-                          get_ponto_x(p2), get_ponto_y(p2));
+                          get_ponto_x(p2), get_ponto_y(p2),
+                          cor);
 }
 
 Segmento clonar_segmento(Segmento segmento)
@@ -64,7 +78,8 @@ Segmento clonar_segmento(Segmento segmento)
     
     return criar_segmento(seg->id,
                           get_ponto_x(seg->p1), get_ponto_y(seg->p1),
-                          get_ponto_x(seg->p2), get_ponto_y(seg->p2));
+                          get_ponto_x(seg->p2), get_ponto_y(seg->p2),
+                          seg->cor);
 }
 
 void destruir_segmento(Segmento segmento)
@@ -85,6 +100,12 @@ int get_segmento_id(Segmento segmento)
 {
     SegmentoInternal *seg = (SegmentoInternal*)segmento;
     return seg ? seg->id : -1;
+}
+
+const char* get_segmento_cor(Segmento segmento)
+{
+    SegmentoInternal *seg = (SegmentoInternal*)segmento;
+    return seg ? seg->cor : "none";
 }
 
 Ponto get_segmento_p1(Segmento segmento)
@@ -146,12 +167,14 @@ int segmento_dividir(Segmento segmento, Ponto ponto, Segmento *seg1, Segmento *s
     /* Primeiro segmento: p1 até ponto de divisão */
     *seg1 = criar_segmento(seg->id,
                            get_ponto_x(seg->p1), get_ponto_y(seg->p1),
-                           get_ponto_x(ponto), get_ponto_y(ponto));
+                           get_ponto_x(ponto), get_ponto_y(ponto),
+                           seg->cor);
     
     /* Segundo segmento: ponto de divisão até p2 */
     *seg2 = criar_segmento(seg->id,
                            get_ponto_x(ponto), get_ponto_y(ponto),
-                           get_ponto_x(seg->p2), get_ponto_y(seg->p2));
+                           get_ponto_x(seg->p2), get_ponto_y(seg->p2),
+                           seg->cor);
     
     return (*seg1 != NULL && *seg2 != NULL);
 }

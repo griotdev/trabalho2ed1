@@ -1,14 +1,3 @@
-cln: dx=50.00 dy=50.00
-  86 linha (clone)
-  93 texto (clone)
-  85 linha (clone)
-  88 linha (clone)
-  92 texto (clone)
-  78 circulo (clone)
-  79 circulo (clone)
-  95 texto (clone)
-  81 circulo (clone)
-  87 linha (clone)
 cln: dx=270.00 dy=270.00
   86 linha (clone)
   93 texto (clone)
