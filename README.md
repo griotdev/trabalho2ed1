@@ -138,7 +138,3 @@ src/
 ```
 
 ---
-
-## Licença
-
-Projeto acadêmico - Universidade Federal de Goiás (UFG)
