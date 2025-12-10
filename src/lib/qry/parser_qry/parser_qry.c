@@ -112,7 +112,8 @@ int processar_arquivo_qry(const char *caminho_qry,
            caminho_qry, tipo_ordenacao ? tipo_ordenacao : "padrão", limiar_insertion);
                        
                 int convertidos = executar_cmd_a(lista_formas, lista_anteparos, 
-                                                  id_inicio, id_fim, orientacao);
+                                                  id_inicio, id_fim, orientacao,
+                                                  &proximo_id, dir_saida, sufixo_saida, sufixo_saida);
                 printf("          %d formas convertidas\n", convertidos);
                 num_comandos++;
             }

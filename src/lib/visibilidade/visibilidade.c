@@ -146,11 +146,14 @@ static void criar_bounding_box(Lista segmentos, double min_x, double min_y,
     
     /* Cria 4 segmentos formando a bounding box (com margem) */
     /* Sentido anti-horário */
-    inserir_fim(segmentos, criar_segmento(-1, min_x, min_y, max_x, min_y, "none")); /* baixo */
-    inserir_fim(segmentos, criar_segmento(-2, max_x, min_y, max_x, max_y, "none")); /* direita */
-    inserir_fim(segmentos, criar_segmento(-3, max_x, max_y, min_x, max_y, "none")); /* cima */
-    inserir_fim(segmentos, criar_segmento(-4, min_x, max_y, min_x, min_y, "none")); /* esquerda */
+    /* ID -1 como "sistema", id_original -1 */
+    inserir_fim(segmentos, criar_segmento(-1, -1, min_x, min_y, max_x, min_y, "none")); /* baixo */
+    inserir_fim(segmentos, criar_segmento(-2, -1, max_x, min_y, max_x, max_y, "none")); /* direita */
+    inserir_fim(segmentos, criar_segmento(-3, -1, max_x, max_y, min_x, max_y, "none")); /* cima */
+    inserir_fim(segmentos, criar_segmento(-4, -1, min_x, max_y, min_x, min_y, "none")); /* esquerda */
 }
+
+
 
 /**
  * Extrai eventos (vértices) de todos os segmentos.
@@ -293,12 +296,13 @@ PoligonoVisibilidade calcular_visibilidade(Ponto origem, Lista segmentos_entrada
             {
                 /* Divide o segmento em dois: P1->Intersecao e Intersecao->P2 */
                 
-                /* Preserva ID e cor */
+                /* Preserva ID, ID original e cor */
                 int id = get_segmento_id(seg);
+                int id_orig = get_segmento_id_original(seg);
                 const char *cor = get_segmento_cor(seg);
                 
-                Segmento s1 = criar_segmento(id, x1, y1, ix, iy, cor);
-                Segmento s2 = criar_segmento(id, ix, iy, x2, y2, cor);
+                Segmento s1 = criar_segmento(id, id_orig, x1, y1, ix, iy, cor);
+                Segmento s2 = criar_segmento(id, id_orig, ix, iy, x2, y2, cor);
                 
                 inserir_fim(segmentos, s1);
                 inserir_fim(segmentos, s2);
@@ -581,10 +585,10 @@ int converter_formas_para_segmentos(Lista lista_formas, Lista lista_segmentos, c
                 const char *cor = getRetanguloCorBorda(r);
                 
                 /* 4 segmentos do retângulo */
-                inserir_fim(lista_segmentos, criar_segmento(id, x, y, x+w, y, cor));         /* baixo */
-                inserir_fim(lista_segmentos, criar_segmento(id, x+w, y, x+w, y+h, cor));     /* direita */
-                inserir_fim(lista_segmentos, criar_segmento(id, x+w, y+h, x, y+h, cor));     /* cima */
-                inserir_fim(lista_segmentos, criar_segmento(id, x, y+h, x, y, cor));         /* esquerda */
+                inserir_fim(lista_segmentos, criar_segmento(id, id, x, y, x+w, y, cor));         /* baixo */
+                inserir_fim(lista_segmentos, criar_segmento(id, id, x+w, y, x+w, y+h, cor));     /* direita */
+                inserir_fim(lista_segmentos, criar_segmento(id, id, x+w, y+h, x, y+h, cor));     /* cima */
+                inserir_fim(lista_segmentos, criar_segmento(id, id, x, y+h, x, y, cor));         /* esquerda */
                 contador += 4;
                 break;
             }
@@ -600,11 +604,11 @@ int converter_formas_para_segmentos(Lista lista_formas, Lista lista_segmentos, c
                 /* Segmento diametral */
                 if (orientacao == 'v')
                 {
-                    inserir_fim(lista_segmentos, criar_segmento(id, cx, cy-r, cx, cy+r, cor));
+                    inserir_fim(lista_segmentos, criar_segmento(id, id, cx, cy-r, cx, cy+r, cor));
                 }
                 else /* 'h' */
                 {
-                    inserir_fim(lista_segmentos, criar_segmento(id, cx-r, cy, cx+r, cy, cor));
+                    inserir_fim(lista_segmentos, criar_segmento(id, id, cx-r, cy, cx+r, cy, cor));
                 }
                 contador++;
                 break;
@@ -619,7 +623,7 @@ int converter_formas_para_segmentos(Lista lista_formas, Lista lista_segmentos, c
                 double y2 = getLinhaY2(l);
                 const char *cor = getLinhaCor(l);
                 
-                inserir_fim(lista_segmentos, criar_segmento(id, x1, y1, x2, y2, cor));
+                inserir_fim(lista_segmentos, criar_segmento(id, id, x1, y1, x2, y2, cor));
                 contador++;
                 break;
             }
@@ -652,7 +656,7 @@ int converter_formas_para_segmentos(Lista lista_formas, Lista lista_segmentos, c
                     x2 = x + comprimento / 2;
                 }
                 
-                inserir_fim(lista_segmentos, criar_segmento(id, x1, y, x2, y, cor));
+                inserir_fim(lista_segmentos, criar_segmento(id, id, x1, y, x2, y, cor));
                 contador++;
                 break;
             }

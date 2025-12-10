@@ -97,12 +97,12 @@ static void pintar_forma(Forma forma, const char *cor)
 /**
  * Gera o arquivo de relatório TXT.
  */
-static void gerar_relatorio_txt(const char *caminho, Lista formas_pintadas, const char *cor)
+static void gerar_relatorio_txt(const char *caminho, Lista formas_pintadas, double x, double y, const char *cor)
 {
     FILE *arquivo = fopen(caminho, "a");
     if (arquivo == NULL) return;
     
-    fprintf(arquivo, "P: cor=%s\n", cor);
+    fprintf(arquivo, "p: x=%.2f y=%.2f cor=%s\n", x, y, cor);
     
     No atual = obter_primeiro(formas_pintadas);
     while (atual != NULL)
@@ -189,7 +189,7 @@ int executar_cmd_p(Ponto origem,
     /* Gera relatório */
     char caminho_txt[MAX_CAMINHO];
     snprintf(caminho_txt, MAX_CAMINHO, "%s/%s.txt", dir_saida, nome_base);
-    gerar_relatorio_txt(caminho_txt, formas_pintadas, cor);
+    gerar_relatorio_txt(caminho_txt, formas_pintadas, get_ponto_x(origem), get_ponto_y(origem), cor);
     
     /* SVG: Gerencia saída baseada no sufixo */
     if (strcmp(sufixo, "-") == 0)

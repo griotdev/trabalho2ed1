@@ -24,6 +24,10 @@ int executar_cmd_a(Lista lista_formas,
                    Lista lista_anteparos,
                    int id_inicio,
                    int id_fim,
-                   char orientacao);
+                   char orientacao,
+                   int *proximo_id,
+                   const char *dir_saida,
+                   const char *nome_base,
+                   const char *sufixo);
 
 #endif /* CMD_A_H */

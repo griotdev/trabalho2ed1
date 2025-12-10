@@ -65,7 +65,7 @@ static int forma_visivel(Forma forma, double *vertices, int num_vertices)
 /**
  * Gera o arquivo de relatório TXT.
  */
-static void gerar_relatorio_txt(const char *caminho, Lista formas_visiveis)
+static void gerar_relatorio_txt(const char *caminho, Lista formas_visiveis, double x, double y)
 {
     FILE *arquivo = fopen(caminho, "a"); /* Append */
     if (arquivo == NULL)
@@ -74,7 +74,7 @@ static void gerar_relatorio_txt(const char *caminho, Lista formas_visiveis)
         return;
     }
     
-    fprintf(arquivo, "d:\n");
+    fprintf(arquivo, "d: x=%.2f y=%.2f\n", x, y);
     
     No atual = obter_primeiro(formas_visiveis);
     while (atual != NULL)
@@ -160,7 +160,7 @@ int executar_cmd_d(Ponto origem,
     /* Gera arquivos de saída */
     char caminho_txt[MAX_CAMINHO];
     snprintf(caminho_txt, MAX_CAMINHO, "%s/%s.txt", dir_saida, nome_base);
-    gerar_relatorio_txt(caminho_txt, formas_visiveis);
+    gerar_relatorio_txt(caminho_txt, formas_visiveis, get_ponto_x(origem), get_ponto_y(origem));
     
     /* SVG: Gerencia saída baseada no sufixo */
     if (strcmp(sufixo, "-") == 0)

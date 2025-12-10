@@ -30,9 +30,9 @@ void teste_insercao_remocao() {
     
     /* Segmentos fictícios */
     /* s1: y=2 */
-    Segmento s1 = criar_segmento(1, -10, 2, 10, 2, "red");
+    Segmento s1 = criar_segmento(1, 1, -10, 2, 10, 2, "red");
     /* s2: y=4 (mais longe) */
-    Segmento s2 = criar_segmento(2, -10, 4, 10, 4, "blue");
+    Segmento s2 = criar_segmento(2, 2, -10, 4, 10, 4, "blue");
     
     arvore_inserir(arv, s1);
     assert(arvore_tamanho(arv) == 1);
