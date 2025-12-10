@@ -1,3 +1,0 @@
-# Teste: Clone fora da área original
-# Clone com deslocamento grande para verificar viewbox dinâmica
-cln 74.00 55.00 300.00 300.00 clone_far

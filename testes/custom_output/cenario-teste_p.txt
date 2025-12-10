@@ -1,6 +1,0 @@
-P: cor=pink
-P: cor=purple
-  1 circulo
-  2 retangulo
-  4 linha
-  5 circulo
