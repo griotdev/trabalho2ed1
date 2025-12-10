@@ -282,6 +282,9 @@ int main(int argc, char *argv[])
         char nome_combinado[MAX_CAMINHO * 2];
         snprintf(nome_combinado, sizeof(nome_combinado), "%s-%s", nome_base, nome_base_qry);
         
+        const char *algoritmo = obter_algoritmo_ordenacao(args);
+        printf("\n[8] Processando arquivo .qry: %s (Ordenação: %s)\n", caminho_qry, algoritmo);
+        
         /* Processa o arquivo .qry */
         int comandos = processar_arquivo_qry(
             caminho_qry,
@@ -289,7 +292,8 @@ int main(int argc, char *argv[])
             lista_anteparos,
             obter_diretorio_saida(args),
             nome_combinado,
-            bbox
+            bbox,
+            algoritmo
         );
         
         if (comandos >= 0)

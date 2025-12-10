@@ -30,6 +30,7 @@ typedef void* Argumentos;
  *   -f <arquivo>     Nome do arquivo .geo (sem o diretório)
  *   -o <diretório>   Diretório de saída (onde serão gerados os .svg e .txt)
  *   -q <arquivo>     Nome do arquivo .qry (opcional, sem o diretório)
+ *   -oa <algoritmo>  Algoritmo de ordenação: qsort ou mergesort (opcional)
  * 
  * @param argc Número de argumentos (recebido do main)
  * @param argv Vetor de strings com os argumentos (recebido do main)
@@ -86,6 +87,14 @@ const char* obter_diretorio_saida(Argumentos args);
  * @return String com o nome do arquivo, ou NULL se não houver consulta
  */
 const char* obter_arquivo_qry(Argumentos args);
+
+/**
+ * Obtém o algoritmo de ordenação (-oa).
+ * 
+ * @param args Ponteiro para a estrutura Argumentos
+ * @return String com o nome do algoritmo (default: "qsort")
+ */
+const char* obter_algoritmo_ordenacao(Argumentos args);
 
 /* ============================================================================
  * Funções Auxiliares

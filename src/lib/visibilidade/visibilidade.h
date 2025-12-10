@@ -26,14 +26,19 @@ typedef void* PoligonoVisibilidade;
  * @param min_x Limite mínimo X do cenário (bounding box)
  * @param min_y Limite mínimo Y do cenário
  * @param max_x Limite máximo X do cenário
+ * @param min_y Limite mínimo Y do cenário
+ * @param max_x Limite máximo X do cenário
  * @param max_y Limite máximo Y do cenário
+ * @param algoritmo_ordenacao "qsort" ou "mergesort"
  * @return Polígono de visibilidade (lista de pontos), ou NULL em caso de erro
  * 
  * @note O polígono retornado deve ser destruído com destruir_poligono_visibilidade()
  */
+
 PoligonoVisibilidade calcular_visibilidade(Ponto origem, Lista segmentos,
                                             double min_x, double min_y,
-                                            double max_x, double max_y);
+                                            double max_x, double max_y,
+                                            const char *algoritmo_ordenacao);
 
 /**
  * Destroi um polígono de visibilidade.

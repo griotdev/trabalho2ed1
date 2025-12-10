@@ -47,7 +47,8 @@ int processar_arquivo_qry(const char *caminho_qry,
                           Lista lista_anteparos,
                           const char *dir_saida,
                           const char *nome_base,
-                          double bbox[4])
+                          double bbox[4],
+                          const char *algoritmo_ordenacao)
 {
     if (caminho_qry == NULL)
     {
@@ -117,7 +118,7 @@ int processar_arquivo_qry(const char *caminho_qry,
                 
                 Ponto origem = criar_ponto(x, y);
                 int destruidos = executar_cmd_d(origem, lista_formas, lista_anteparos,
-                                                 dir_saida, nome_base, sufixo, bbox);
+                                                 dir_saida, nome_base, sufixo, bbox, algoritmo_ordenacao);
                 destruir_ponto(origem);
                 
                 printf("          %d formas destruídas\n", destruidos);
@@ -143,7 +144,7 @@ int processar_arquivo_qry(const char *caminho_qry,
                 
                 Ponto origem = criar_ponto(x, y);
                 int pintados = executar_cmd_p(origem, lista_formas, lista_anteparos,
-                                               cor, dir_saida, nome_base, sufixo, bbox);
+                                               cor, dir_saida, nome_base, sufixo, bbox, algoritmo_ordenacao);
                 destruir_ponto(origem);
                 
                 printf("          %d formas pintadas\n", pintados);
@@ -170,7 +171,7 @@ int processar_arquivo_qry(const char *caminho_qry,
                 Ponto origem = criar_ponto(x, y);
                 int clonados = executar_cmd_cln(origem, lista_formas, lista_anteparos,
                                                  dx, dy, dir_saida, nome_base, sufixo, 
-                                                 bbox, &proximo_id);
+                                                 bbox, &proximo_id, algoritmo_ordenacao);
                 destruir_ponto(origem);
                 
                 printf("          %d formas clonadas\n", clonados);

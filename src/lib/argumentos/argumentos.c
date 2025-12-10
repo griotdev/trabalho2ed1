@@ -17,7 +17,9 @@ typedef struct argumentos_internal
     char *diretorio_entrada;  /* -e: diretório base de entrada */
     char *arquivo_geo;        /* -f: nome do arquivo .geo */
     char *diretorio_saida;    /* -o: diretório de saída */
+
     char *arquivo_qry;        /* -q: nome do arquivo .qry (opcional) */
+    char *algoritmo_ord;      /* -oa: algoritmo de ordenação (opcional) */
 } ArgumentosInternal;
 
 /* ============================================================================
@@ -68,6 +70,7 @@ Argumentos criar_argumentos(int argc, char *argv[])
     args->arquivo_geo = NULL;
     args->diretorio_saida = NULL;
     args->arquivo_qry = NULL;
+    args->algoritmo_ord = NULL;
 
     /* Processa os argumentos */
     for (int i = 1; i < argc; i++)
@@ -87,6 +90,10 @@ Argumentos criar_argumentos(int argc, char *argv[])
         else if (strcmp(argv[i], "-q") == 0 && i + 1 < argc)
         {
             args->arquivo_qry = duplicar_string(argv[++i]);
+        }
+        else if (strcmp(argv[i], "-oa") == 0 && i + 1 < argc)
+        {
+            args->algoritmo_ord = duplicar_string(argv[++i]);
         }
         else if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0)
         {
@@ -111,6 +118,7 @@ void destruir_argumentos(Argumentos argumentos)
     free(args->arquivo_geo);
     free(args->diretorio_saida);
     free(args->arquivo_qry);
+    free(args->algoritmo_ord);
     free(args);
 }
 
@@ -136,6 +144,17 @@ const char* obter_arquivo_qry(Argumentos argumentos)
 {
     ArgumentosInternal *args = (ArgumentosInternal*)argumentos;
     return args ? args->arquivo_qry : NULL;
+}
+
+const char* obter_algoritmo_ordenacao(Argumentos argumentos)
+{
+    ArgumentosInternal *args = (ArgumentosInternal*)argumentos;
+    /* Default para "qsort" se não especificado */
+    if (args && args->algoritmo_ord)
+    {
+        return args->algoritmo_ord;
+    }
+    return "qsort";
 }
 
 int argumentos_validos(Argumentos argumentos)
@@ -171,6 +190,7 @@ void exibir_uso(const char *nome_programa)
     printf("  -o <diretório>   Diretório de saída (arquivos .svg e .txt) [OBRIGATÓRIO]\n");
     printf("  -e <diretório>   Diretório base de entrada [opcional]\n");
     printf("  -q <arquivo>     Caminho do arquivo de consultas (.qry) [opcional]\n");
+    printf("  -oa <algoritmo>  Algoritmo de ordenação: qsort ou mergesort [opcional]\n");
     printf("  -h, --help       Exibe esta mensagem de ajuda\n\n");
     printf("Exemplos:\n");
     printf("  %s -f ./dados/mapa.geo -o ./saida\n",

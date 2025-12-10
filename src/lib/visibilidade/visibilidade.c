@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include "sort.h"
 
 #include "visibilidade.h"
 #include "lista.h"
@@ -181,12 +182,12 @@ static Lista extrair_eventos(Lista segmentos, Ponto origem)
 /**
  * Ordena lista de eventos por ângulo.
  */
-static void ordenar_eventos(Lista eventos)
+static void ordenar_eventos(Lista eventos, const char *algoritmo)
 {
     int n = obter_tamanho(eventos);
     if (n <= 1) return;
     
-    /* Converte para array para usar qsort */
+    /* Converte para array para usar o módulo sort */
     Evento **arr = (Evento**)malloc(n * sizeof(Evento*));
     if (arr == NULL) return;
     
@@ -197,7 +198,15 @@ static void ordenar_eventos(Lista eventos)
         atual = obter_proximo(atual);
     }
     
-    qsort(arr, n, sizeof(Evento*), comparar_eventos);
+    /* Seleciona algoritmo */
+    AlgoritmoOrdenacao alg_enum = ALG_QSORT;
+    if (algoritmo != NULL && strcmp(algoritmo, "mergesort") == 0)
+    {
+        alg_enum = ALG_MERGESORT;
+    }
+    
+    /* Ordena usando o módulo sort */
+    ordenar((void*)arr, n, sizeof(Evento*), comparar_eventos, alg_enum);
     
     /* Reconstrói a lista na ordem correta */
     atual = obter_primeiro(eventos);
@@ -228,7 +237,8 @@ static void ordenar_eventos(Lista eventos)
 
 PoligonoVisibilidade calcular_visibilidade(Ponto origem, Lista segmentos_entrada,
                                             double min_x, double min_y,
-                                            double max_x, double max_y)
+                                            double max_x, double max_y,
+                                            const char *algoritmo_ordenacao)
 {
     if (origem == NULL) return NULL;
     
@@ -261,7 +271,7 @@ PoligonoVisibilidade calcular_visibilidade(Ponto origem, Lista segmentos_entrada
     }
     
     /* Ordena eventos por ângulo */
-    ordenar_eventos(eventos);
+    ordenar_eventos(eventos, algoritmo_ordenacao);
     
     /* Cria árvore de segmentos ativos */
     ArvoreSegmentos arvore = arvore_criar(origem);

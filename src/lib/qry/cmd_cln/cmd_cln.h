@@ -24,6 +24,7 @@
  * @param sufixo Sufixo para o arquivo de saída
  * @param bbox Bounding box [min_x, min_y, max_x, max_y]
  * @param proximo_id Ponteiro para o próximo ID disponível
+ * @param algoritmo_ordenacao Algoritmo de ordenação
  * @return Número de formas clonadas
  */
 int executar_cmd_cln(Ponto origem,
@@ -35,6 +36,7 @@ int executar_cmd_cln(Ponto origem,
                      const char *nome_base,
                      const char *sufixo,
                      double bbox[4],
-                     int *proximo_id);
+                     int *proximo_id,
+                     const char *algoritmo_ordenacao);
 
 #endif /* CMD_CLN_H */

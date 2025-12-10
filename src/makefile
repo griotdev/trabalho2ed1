@@ -18,6 +18,7 @@ TARGET = ted
 ARGUMENTOS_SRC = $(LIB_DIR)/argumentos/argumentos.c
 LISTA_SRC = $(LIB_DIR)/estruturas/lista/lista.c
 ARVORE_SRC = $(LIB_DIR)/estruturas/arvore/arvore.c
+SORT_SRC = $(LIB_DIR)/util/sort/sort.c
 
 # Formas
 CIRCULO_SRC = $(LIB_DIR)/formas/circulo/circulo.c
@@ -51,7 +52,7 @@ MAIN_SRC = main.c
 # Agrupa fontes
 # =============================================================================
 
-SOURCES = $(ARGUMENTOS_SRC) $(LISTA_SRC) $(ARVORE_SRC) \
+SOURCES = $(ARGUMENTOS_SRC) $(LISTA_SRC) $(ARVORE_SRC) $(SORT_SRC) \
           $(CIRCULO_SRC) $(RETANGULO_SRC) $(LINHA_SRC) $(TEXTO_SRC) $(FORMAS_SRC) \
           $(PARSER_GEO_SRC) $(SVG_SRC) \
           $(PONTO_SRC) $(SEGMENTO_SRC) $(CALCULOS_SRC) \
@@ -83,7 +84,8 @@ INCLUDES = -I$(LIB_DIR)/argumentos \
            -I$(LIB_DIR)/qry/cmd_a \
            -I$(LIB_DIR)/qry/cmd_d \
            -I$(LIB_DIR)/qry/cmd_p \
-           -I$(LIB_DIR)/qry/cmd_cln
+           -I$(LIB_DIR)/qry/cmd_cln \
+           -I$(LIB_DIR)/util/sort
 
 # =============================================================================
 # Regras
@@ -158,6 +160,9 @@ $(BUILD_DIR)/cmd_cln.o: $(CMD_CLN_SRC)
 	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
 $(BUILD_DIR)/main.o: $(MAIN_SRC)
+	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+
+$(BUILD_DIR)/sort.o: $(SORT_SRC)
 	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
 # Limpeza

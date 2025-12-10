@@ -21,6 +21,7 @@
  * @param nome_base Nome base do arquivo
  * @param sufixo Sufixo para o arquivo de saída
  * @param bbox Bounding box [min_x, min_y, max_x, max_y]
+ * @param algoritmo_ordenacao Algoritmo a ser usado ("qsort" ou "mergesort")
  * @return Número de formas destruídas
  */
 int executar_cmd_d(Ponto origem,
@@ -29,6 +30,7 @@ int executar_cmd_d(Ponto origem,
                    const char *dir_saida,
                    const char *nome_base,
                    const char *sufixo,
-                   double bbox[4]);
+                   double bbox[4],
+                   const char *algoritmo_ordenacao);
 
 #endif /* CMD_D_H */

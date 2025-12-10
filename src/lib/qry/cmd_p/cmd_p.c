@@ -139,7 +139,8 @@ int executar_cmd_p(Ponto origem,
                    const char *dir_saida,
                    const char *nome_base,
                    const char *sufixo,
-                   double bbox[4])
+                   double bbox[4],
+                   const char *algoritmo_ordenacao)
 {
     if (origem == NULL || lista_formas == NULL || cor == NULL)
     {
@@ -149,7 +150,8 @@ int executar_cmd_p(Ponto origem,
     /* Calcula polígono de visibilidade */
     PoligonoVisibilidade poligono = calcular_visibilidade(
         origem, lista_anteparos,
-        bbox[0], bbox[1], bbox[2], bbox[3]
+        bbox[0], bbox[1], bbox[2], bbox[3],
+        algoritmo_ordenacao
     );
     
     if (poligono == NULL)

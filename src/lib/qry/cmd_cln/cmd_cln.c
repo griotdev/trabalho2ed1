@@ -183,7 +183,8 @@ int executar_cmd_cln(Ponto origem,
                      const char *nome_base,
                      const char *sufixo,
                      double bbox[4],
-                     int *proximo_id)
+                     int *proximo_id,
+                     const char *algoritmo_ordenacao)
 {
     if (origem == NULL || lista_formas == NULL || proximo_id == NULL)
     {
@@ -193,7 +194,8 @@ int executar_cmd_cln(Ponto origem,
     /* Calcula polígono de visibilidade */
     PoligonoVisibilidade poligono = calcular_visibilidade(
         origem, lista_anteparos,
-        bbox[0], bbox[1], bbox[2], bbox[3]
+        bbox[0], bbox[1], bbox[2], bbox[3],
+        algoritmo_ordenacao
     );
     
     if (poligono == NULL)
