@@ -10,9 +10,10 @@
 #include "lista.h"
 #include "ponto.h"
 #include "segmento.h"
+#include "poligono.h"
 
-/* Tipo opaco para o resultado da visibilidade */
-typedef void* PoligonoVisibilidade;
+/* Alias para compatibilidade ou uso semântico */
+typedef Poligono PoligonoVisibilidade;
 
 /* ============================================================================
  * Funções Principais

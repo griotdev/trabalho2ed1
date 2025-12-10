@@ -35,6 +35,7 @@ SVG_SRC = $(LIB_DIR)/geo/svg/svg.c
 PONTO_SRC = $(LIB_DIR)/geometria/ponto/ponto.c
 SEGMENTO_SRC = $(LIB_DIR)/geometria/segmento/segmento.c
 CALCULOS_SRC = $(LIB_DIR)/geometria/calculos/calculos.c
+POLIGONO_SRC = $(LIB_DIR)/geometria/poligono/poligono.c
 
 # Visibilidade
 VISIBILIDADE_SRC = $(LIB_DIR)/visibilidade/visibilidade.c
@@ -55,7 +56,7 @@ MAIN_SRC = main.c
 SOURCES = $(ARGUMENTOS_SRC) $(LISTA_SRC) $(ARVORE_SRC) $(SORT_SRC) \
           $(CIRCULO_SRC) $(RETANGULO_SRC) $(LINHA_SRC) $(TEXTO_SRC) $(FORMAS_SRC) \
           $(PARSER_GEO_SRC) $(SVG_SRC) \
-          $(PONTO_SRC) $(SEGMENTO_SRC) $(CALCULOS_SRC) \
+          $(PONTO_SRC) $(SEGMENTO_SRC) $(CALCULOS_SRC) $(POLIGONO_SRC) \
           $(VISIBILIDADE_SRC) \
           $(PARSER_QRY_SRC) $(CMD_A_SRC) $(CMD_D_SRC) $(CMD_P_SRC) $(CMD_CLN_SRC)
 
@@ -79,6 +80,7 @@ INCLUDES = -I$(LIB_DIR)/argumentos \
            -I$(LIB_DIR)/geometria/ponto \
            -I$(LIB_DIR)/geometria/segmento \
            -I$(LIB_DIR)/geometria/calculos \
+           -I$(LIB_DIR)/geometria/poligono \
            -I$(LIB_DIR)/visibilidade \
            -I$(LIB_DIR)/qry/parser_qry \
            -I$(LIB_DIR)/qry/cmd_a \
@@ -153,6 +155,10 @@ $(BUILD_DIR)/segmento.o: $(SEGMENTO_SRC)
 
 $(BUILD_DIR)/calculos.o: $(CALCULOS_SRC)
 	@echo "Compilando módulo calculos..."
+	@$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+
+$(BUILD_DIR)/poligono.o: $(POLIGONO_SRC)
+	@echo "Compilando módulo poligono..."
 	@$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
 $(BUILD_DIR)/visibilidade.o: $(VISIBILIDADE_SRC)

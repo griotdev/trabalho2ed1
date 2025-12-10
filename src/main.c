@@ -25,7 +25,7 @@
 #define MAX_CAMINHO 1024
 
 /* Margem extra no viewBox do SVG */
-#define MARGEM_SVG 10.0
+#define MARGEM_SVG 40.0
 
 /* ============================================================================
  * Funções Auxiliares

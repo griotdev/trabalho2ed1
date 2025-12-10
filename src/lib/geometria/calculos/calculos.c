@@ -228,6 +228,57 @@ int ponto_no_poligono(double px, double py, double *vertices, int num_vertices)
     return dentro;
 }
 
+/* ============================================================================
+ * Funções Auxiliares Estáticas para Colisão
+ * ============================================================================ */
+
+/* Verifica se q está no segmento pr */
+static int no_segmento(double px, double py, double rx, double ry, double qx, double qy)
+{
+    return qx <= fmax(px, rx) && qx >= fmin(px, rx) &&
+           qy <= fmax(py, ry) && qy >= fmin(py, ry);
+}
+
+static int seg_intersepta(double x1, double y1, double x2, double y2,
+                          double x3, double y3, double x4, double y4)
+{
+    Orientacao o1 = calcular_orientacao_coords(x1, y1, x2, y2, x3, y3);
+    Orientacao o2 = calcular_orientacao_coords(x1, y1, x2, y2, x4, y4);
+    Orientacao o3 = calcular_orientacao_coords(x3, y3, x4, y4, x1, y1);
+    Orientacao o4 = calcular_orientacao_coords(x3, y3, x4, y4, x2, y2);
+    
+    /* Caso geral */
+    if (o1 != o2 && o3 != o4) return 1;
+    
+    /* Casos especiais de colinearidade */
+    if (o1 == ORIENTACAO_COLINEAR && no_segmento(x1, y1, x2, y2, x3, y3)) return 1;
+    if (o2 == ORIENTACAO_COLINEAR && no_segmento(x1, y1, x2, y2, x4, y4)) return 1;
+    if (o3 == ORIENTACAO_COLINEAR && no_segmento(x3, y3, x4, y4, x1, y1)) return 1;
+    if (o4 == ORIENTACAO_COLINEAR && no_segmento(x3, y3, x4, y4, x2, y2)) return 1;
+    
+    return 0;
+}
+
+/* Distância quadrada mínima de um ponto P a um segmento AB */
+static double dist_sq_ponto_segmento(double px, double py, double ax, double ay, double bx, double by)
+{
+    double l2 = (bx - ax)*(bx - ax) + (by - ay)*(by - ay);
+    if (l2 == 0) return (px - ax)*(px - ax) + (py - ay)*(py - ay);
+    
+    double t = ((px - ax)*(bx - ax) + (py - ay)*(by - ay)) / l2;
+    t = fmax(0, fmin(1, t));
+    
+    double projx = ax + t * (bx - ax);
+    double projy = ay + t * (by - ay);
+    
+    return (px - projx)*(px - projx) + (py - projy)*(py - projy);
+}
+
+
+/* ============================================================================
+ * Função Principal de Verificação
+ * ============================================================================ */
+
 /* Precisamos incluir os headers de formas para forma_no_poligono */
 #include "formas.h"
 #include "circulo.h"
@@ -246,6 +297,9 @@ int forma_no_poligono(void *forma_ptr, double *vertices, int num_vertices)
     TipoForma tipo = getFormaTipo(forma);
     void *dados = getFormaDados(forma);
     
+    /* Verifica intersecção de arestas do polígono com a forma */
+    /* Para cada aresta do polígono (vx1, vy1) -> (vx2, vy2) */
+    
     switch (tipo)
     {
         case TIPO_CIRCULO:
@@ -253,53 +307,114 @@ int forma_no_poligono(void *forma_ptr, double *vertices, int num_vertices)
             Circulo c = (Circulo)dados;
             double cx = getCirculoX(c);
             double cy = getCirculoY(c);
+            double r = getCirculoRaio(c);
+            double r_sq = r * r;
             
-            /* Verifica se o centro está dentro */
-            return ponto_no_poligono(cx, cy, vertices, num_vertices);
+            /* 1. Centro do círculo no polígono */
+            if (ponto_no_poligono(cx, cy, vertices, num_vertices)) return 1;
+            
+            /* 2. Algum vértice do polígono dentro do círculo */
+            for (int i = 0; i < num_vertices; i++) {
+                double vx = vertices[2*i];
+                double vy = vertices[2*i+1];
+                double d2 = (vx - cx)*(vx - cx) + (vy - cy)*(vy - cy);
+                if (d2 <= r_sq) return 1;
+            }
+            
+            /* 3. Alguma aresta do polígono cruza o círculo (distancia segmento a centro <= r) */
+            for (int i = 0, j = num_vertices - 1; i < num_vertices; j = i++) {
+                double vx1 = vertices[2*i];
+                double vy1 = vertices[2*i+1];
+                double vx2 = vertices[2*j];
+                double vy2 = vertices[2*j+1];
+                
+                if (dist_sq_ponto_segmento(cx, cy, vx1, vy1, vx2, vy2) <= r_sq) return 1;
+            }
+            return 0;
         }
         
         case TIPO_RETANGULO:
         {
             Retangulo r = (Retangulo)dados;
-            double x = getRetanguloX(r);
-            double y = getRetanguloY(r);
+            double rx = getRetanguloX(r);
+            double ry = getRetanguloY(r);
             double w = getRetanguloLargura(r);
             double h = getRetanguloAltura(r);
             
-            /* Verifica se algum dos 4 cantos está dentro */
-            if (ponto_no_poligono(x, y, vertices, num_vertices) ||
-                ponto_no_poligono(x + w, y, vertices, num_vertices) ||
-                ponto_no_poligono(x, y + h, vertices, num_vertices) ||
-                ponto_no_poligono(x + w, y + h, vertices, num_vertices))
-            {
-                return 1;
+            /* Definição das arestas do retângulo */
+            double rect_x[4] = {rx, rx+w, rx+w, rx};
+            double rect_y[4] = {ry, ry, ry+h, ry+h};
+            
+            /* 1. Vértices do retângulo no polígono */
+            for(int k=0; k<4; k++)
+                if(ponto_no_poligono(rect_x[k], rect_y[k], vertices, num_vertices)) return 1;
+
+            /* 2. Vértices do polígono no retângulo */
+            for(int i=0; i<num_vertices; i++) {
+                double vx = vertices[2*i];
+                double vy = vertices[2*i+1];
+                if (vx >= rx && vx <= rx+w && vy >= ry && vy <= ry+h) return 1;
             }
             
-            /* Ou se o centro está dentro */
-            return ponto_no_poligono(x + w/2, y + h/2, vertices, num_vertices);
+            /* 3. Intersecção de arestas */
+            for (int i = 0, j = num_vertices - 1; i < num_vertices; j = i++) {
+                double vx1 = vertices[2*i];
+                double vy1 = vertices[2*i+1];
+                double vx2 = vertices[2*j];
+                double vy2 = vertices[2*j+1];
+                
+                /* Compara com 4 arestas do retângulo */
+                for(int k=0; k<4; k++) {
+                    int next_k = (k+1)%4;
+                    if (seg_intersepta(vx1, vy1, vx2, vy2, 
+                                       rect_x[k], rect_y[k], 
+                                       rect_x[next_k], rect_y[next_k])) return 1;
+                }
+            }
+            return 0;
         }
         
         case TIPO_LINHA:
         {
             Linha l = (Linha)dados;
-            double x1 = getLinhaX1(l);
-            double y1 = getLinhaY1(l);
-            double x2 = getLinhaX2(l);
-            double y2 = getLinhaY2(l);
+            double lx1 = getLinhaX1(l);
+            double ly1 = getLinhaY1(l);
+            double lx2 = getLinhaX2(l);
+            double ly2 = getLinhaY2(l);
             
-            /* Verifica se algum extremo está dentro */
-            return ponto_no_poligono(x1, y1, vertices, num_vertices) ||
-                   ponto_no_poligono(x2, y2, vertices, num_vertices);
+            /* 1. Extremos no polígono */
+            if (ponto_no_poligono(lx1, ly1, vertices, num_vertices)) return 1;
+            if (ponto_no_poligono(lx2, ly2, vertices, num_vertices)) return 1;
+            
+            /* 2. Intersecção de arestas */
+            for (int i = 0, j = num_vertices - 1; i < num_vertices; j = i++) {
+                double vx1 = vertices[2*i];
+                double vy1 = vertices[2*i+1];
+                double vx2 = vertices[2*j];
+                double vy2 = vertices[2*j+1];
+                
+                if (seg_intersepta(vx1, vy1, vx2, vy2, lx1, ly1, lx2, ly2)) return 1;
+            }
+            return 0;
         }
         
         case TIPO_TEXTO:
         {
             Texto t = (Texto)dados;
-            double x = getTextoX(t);
-            double y = getTextoY(t);
-            
-            /* Verifica se a âncora está dentro */
-            return ponto_no_poligono(x, y, vertices, num_vertices);
+            double txt_x = getTextoX(t);
+            double txt_y = getTextoY(t);
+            /* Texto é tratado como ponto (âncora) por simplificação ou bounding box?
+               A regra pede apenas âncora?
+               Regra: "Verificar intersecta(Forma)". Texto tem largura.
+               Se o usuário não pediu implementação de BB de texto, mantemos âncora.
+               Mas texto vira segmento em `converter_formas`.
+               Aqui estamos testando a FORMA original.
+               Vou manter apenas checagem da âncora para ser seguro, ou expandir para BB se soubesse a string.
+               O PDF diz "Textos são convertidos em segmentos...". Isso é para anteparo.
+               Para destruição, "Formas... dentro do polígono sofrem a ação".
+               Assumindo âncora por enquanto, como estava.
+            */
+            return ponto_no_poligono(txt_x, txt_y, vertices, num_vertices);
         }
         
         default:

@@ -31,25 +31,7 @@
  */
 static double* poligono_para_array(PoligonoVisibilidade poligono, int *num_vertices)
 {
-    if (poligono == NULL || num_vertices == NULL) return NULL;
-    
-    *num_vertices = poligono_num_vertices(poligono);
-    if (*num_vertices < 3) return NULL;
-    
-    double *vertices = (double*)malloc(*num_vertices * 2 * sizeof(double));
-    if (vertices == NULL) return NULL;
-    
-    for (int i = 0; i < *num_vertices; i++)
-    {
-        Ponto p = poligono_obter_vertice(poligono, i);
-        if (p != NULL)
-        {
-            vertices[i * 2] = get_ponto_x(p);
-            vertices[i * 2 + 1] = get_ponto_y(p);
-        }
-    }
-    
-    return vertices;
+    return poligono_get_vertices_ref((Poligono)poligono, num_vertices);
 }
 
 /**
@@ -227,7 +209,7 @@ int executar_cmd_cln(Ponto origem,
     {
         Forma forma = (Forma)obter_elemento(atual);
         
-        if (forma_visivel(forma, vertices, num_vertices))
+        if (getFormaAtiva(forma) && forma_visivel(forma, vertices, num_vertices))
         {
             inserir_fim(formas_para_clonar, forma);
         }
@@ -285,7 +267,7 @@ int executar_cmd_cln(Ponto origem,
         snprintf(caminho_svg, MAX_CAMINHO, "%s/%s-%s.svg", dir_saida, nome_base, sufixo);
         
         /* Usa viewBox com as dimensões do cenário */
-        double margem = 10.0;
+        double margem = 40.0;
         SvgContexto svg = criar_svg_viewbox(
             caminho_svg,
             bbox[0] - margem,
@@ -320,7 +302,7 @@ int executar_cmd_cln(Ponto origem,
         /* Destroi poligono */
         destruir_poligono_visibilidade(poligono);
     }
-    if (vertices != NULL) free(vertices);
+    // if (vertices != NULL) free(vertices);
     
     (void)sufixo;
     

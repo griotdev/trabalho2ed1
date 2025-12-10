@@ -49,12 +49,7 @@ typedef struct evento
     Segmento segmento;  /* Segmento ao qual pertence */
 } Evento;
 
-/* Estrutura do polígono de visibilidade */
-typedef struct poligono_internal
-{
-    Lista vertices;     /* Lista de Ponto */
-    int num_vertices;
-} PoligonoInternal;
+/* Estrutura interna removida em favor do TAD Poligono em geometria/poligono */
 
 /* ============================================================================
  * Funções Auxiliares - Eventos
@@ -266,20 +261,16 @@ PoligonoVisibilidade calcular_visibilidade(Ponto origem, Lista segmentos_entrada
     
     /* ========================================================================
      * PRÉ-PROCESSAMENTO: Divisão de Segmentos no Ângulo 0
-     * Garante que nenhum segmento "atravesse" a descontinuidade 2PI -> 0
      * ======================================================================== */
     No node_seg = obter_primeiro(segmentos);
     while (node_seg != NULL)
     {
         Segmento seg = (Segmento)obter_elemento(node_seg);
-        No proximo_node = obter_proximo(node_seg); /* Salva próximo pois podemos alterar lista */
+        No proximo_node = obter_proximo(node_seg);
         
-        /* Raio horizontal para a direita */
-        Ponto dir_zero = criar_ponto(get_ponto_x(origem) + 1.0, get_ponto_y(origem));
+        Ponto dir_zero = criar_ponto(ox + 1.0, oy);
         Ponto intersecao = NULL;
         
-        /* Verifica interseção estrita (não nas pontas) */
-        /* intersecao_raio_segmento retorna interseção. Precisamos saber se é "no meio" */
         if (intersecao_raio_segmento(origem, dir_zero, seg, &intersecao))
         {
             double ix = get_ponto_x(intersecao);
@@ -290,13 +281,9 @@ PoligonoVisibilidade calcular_visibilidade(Ponto origem, Lista segmentos_entrada
             double x2 = get_segmento_x2(seg);
             double y2 = get_segmento_y2(seg);
             
-            /* Verifica se interseção é diferente das pontas (com tolerância) */
-            if (hypot(get_ponto_x(intersecao) - x1, get_ponto_y(intersecao) - y1) > EPSILON &&
-                hypot(get_ponto_x(intersecao) - x2, get_ponto_y(intersecao) - y2) > EPSILON)
+            if (hypot(ix - x1, iy - y1) > EPSILON &&
+                hypot(ix - x2, iy - y2) > EPSILON)
             {
-                /* Divide o segmento em dois: P1->Intersecao e Intersecao->P2 */
-                
-                /* Preserva ID, ID original e cor */
                 int id = get_segmento_id(seg);
                 int id_orig = get_segmento_id_original(seg);
                 const char *cor = get_segmento_cor(seg);
@@ -307,19 +294,11 @@ PoligonoVisibilidade calcular_visibilidade(Ponto origem, Lista segmentos_entrada
                 inserir_fim(segmentos, s1);
                 inserir_fim(segmentos, s2);
                 
-                /* Remove o original da lista e memória */
                 void *removido = remover_no(segmentos, node_seg);
                 if (removido) destruir_segmento((Segmento)removido);
-                /* Nota: `proximo_node` pode ter sido invalidado se `remover_elemento`
-                   mexeu na estrutura? List implementation usually safe if we hold next ptr.
-                   Mas se `seg` era o último, `proximo_node` era NULL.
-                   Inserimos novos no fim. Loop continua nos novos.
-                   Novos não cruzam 0 (tocam). Então if falha. OK. */
             }
-            
             destruir_ponto(intersecao);
         }
-        
         destruir_ponto(dir_zero); 
         node_seg = proximo_node;
     }
@@ -345,8 +324,8 @@ PoligonoVisibilidade calcular_visibilidade(Ponto origem, Lista segmentos_entrada
         return NULL;
     }
     
-    /* Cria polígono de saída */
-    PoligonoInternal *resultado = (PoligonoInternal*)malloc(sizeof(PoligonoInternal));
+    /* Cria polígono de saída usando TAD */
+    Poligono resultado = poligono_criar();
     if (resultado == NULL)
     {
         arvore_destruir(arvore);
@@ -355,41 +334,33 @@ PoligonoVisibilidade calcular_visibilidade(Ponto origem, Lista segmentos_entrada
         return NULL;
     }
     
-    resultado->vertices = criar_lista();
-    resultado->num_vertices = 0;
-    
     /* Inicializa árvore com segmentos que cruzam ângulo 0 */
     No atual = obter_primeiro(segmentos);
     while (atual != NULL)
     {
         Segmento seg = (Segmento)obter_elemento(atual);
-        
-        /* Verifica se o segmento cruza o raio horizontal (ângulo 0) */
         double dist = distancia_raio_segmento(origem, 0.0, seg);
         if (dist < 1e9)
         {
             arvore_inserir(arvore, seg);
         }
-        
         atual = obter_proximo(atual);
     }
     
-    /* Ponto inicial do polígono (interseção com biombo inicial) */
+    /* Ponto inicial do polígono */
     Segmento biombo = arvore_obter_primeiro(arvore);
     Ponto ultimo_ponto = NULL;
     
     if (biombo != NULL)
     {
-        Ponto dir = criar_ponto(get_ponto_x(origem) + 1000, get_ponto_y(origem));
+        Ponto dir = criar_ponto(ox + 1000, oy);
         Ponto intersecao = NULL;
         
         if (intersecao_raio_segmento(origem, dir, biombo, &intersecao))
         {
-            inserir_fim(resultado->vertices, intersecao);
-            resultado->num_vertices++;
-            ultimo_ponto = intersecao;
+            poligono_inserir_vertice(resultado, get_ponto_x(intersecao), get_ponto_y(intersecao));
+            ultimo_ponto = intersecao; /* Mantemos ownership desta copia para comparação */
         }
-        
         destruir_ponto(dir);
     }
     
@@ -398,23 +369,15 @@ PoligonoVisibilidade calcular_visibilidade(Ponto origem, Lista segmentos_entrada
     while (atual != NULL)
     {
         Evento *evento = (Evento*)obter_elemento(atual);
-        
-        /* Atualiza ângulo da árvore */
         arvore_definir_angulo(arvore, evento->angulo);
         
         if (evento->tipo == EVENTO_INICIO)
         {
-            /* Insere segmento na árvore */
             arvore_inserir(arvore, evento->segmento);
-            
-            /* Verifica se é o novo biombo (mais perto) */
             Segmento novo_biombo = arvore_obter_primeiro(arvore);
             
             if (novo_biombo == evento->segmento && biombo != evento->segmento)
             {
-                /* O novo segmento é agora o biombo */
-                
-                /* Calcula interseção com biombo anterior */
                 if (biombo != NULL && ultimo_ponto != NULL)
                 {
                     Ponto intersecao = NULL;
@@ -422,8 +385,8 @@ PoligonoVisibilidade calcular_visibilidade(Ponto origem, Lista segmentos_entrada
                     {
                         if (!ponto_igual(ultimo_ponto, intersecao))
                         {
-                            inserir_fim(resultado->vertices, intersecao);
-                            resultado->num_vertices++;
+                            poligono_inserir_vertice(resultado, get_ponto_x(intersecao), get_ponto_y(intersecao));
+                            destruir_ponto(ultimo_ponto);
                             ultimo_ponto = intersecao;
                         }
                         else
@@ -433,57 +396,41 @@ PoligonoVisibilidade calcular_visibilidade(Ponto origem, Lista segmentos_entrada
                     }
                 }
                 
-                /* Adiciona o ponto do evento */
-                Ponto ponto_copia = clonar_ponto(evento->ponto);
-                if (!ponto_igual(ultimo_ponto, ponto_copia))
+                Ponto pt = evento->ponto;
+                if (!ultimo_ponto || !ponto_igual(ultimo_ponto, pt))
                 {
-                    inserir_fim(resultado->vertices, ponto_copia);
-                    resultado->num_vertices++;
-                    ultimo_ponto = ponto_copia;
+                    poligono_inserir_vertice(resultado, get_ponto_x(pt), get_ponto_y(pt));
+                    if(ultimo_ponto) destruir_ponto(ultimo_ponto);
+                    ultimo_ponto = clonar_ponto(pt);
                 }
-                else
-                {
-                    destruir_ponto(ponto_copia);
-                }
-                
                 biombo = novo_biombo;
             }
         }
         else /* EVENTO_FIM */
         {
-            /* Verifica se é o fim do biombo atual */
             if (evento->segmento == biombo)
             {
-                /* Adiciona o ponto final do biombo */
-                Ponto ponto_copia = clonar_ponto(evento->ponto);
-                if (ultimo_ponto == NULL || !ponto_igual(ultimo_ponto, ponto_copia))
+                Ponto pt = evento->ponto;
+                if (!ultimo_ponto || !ponto_igual(ultimo_ponto, pt))
                 {
-                    inserir_fim(resultado->vertices, ponto_copia);
-                    resultado->num_vertices++;
-                    ultimo_ponto = ponto_copia;
-                }
-                else
-                {
-                    destruir_ponto(ponto_copia);
+                    poligono_inserir_vertice(resultado, get_ponto_x(pt), get_ponto_y(pt));
+                    if(ultimo_ponto) destruir_ponto(ultimo_ponto);
+                    ultimo_ponto = clonar_ponto(pt);
                 }
                 
-                /* Remove o segmento */
                 arvore_remover(arvore, evento->segmento);
-                
-                /* Encontra novo biombo */
                 Segmento novo_biombo = arvore_obter_primeiro(arvore);
                 
                 if (novo_biombo != NULL)
                 {
-                    /* Calcula interseção com novo biombo */
                     Ponto intersecao = NULL;
                     if (intersecao_raio_segmento(origem, evento->ponto, novo_biombo, &intersecao))
                     {
-                        if (!ponto_igual(ultimo_ponto, intersecao))
+                        if (!ultimo_ponto || !ponto_igual(ultimo_ponto, intersecao))
                         {
-                            inserir_fim(resultado->vertices, intersecao);
-                            resultado->num_vertices++;
-                            ultimo_ponto = intersecao;
+                             poligono_inserir_vertice(resultado, get_ponto_x(intersecao), get_ponto_y(intersecao));
+                             if(ultimo_ponto) destruir_ponto(ultimo_ponto);
+                             ultimo_ponto = intersecao;
                         }
                         else
                         {
@@ -491,12 +438,10 @@ PoligonoVisibilidade calcular_visibilidade(Ponto origem, Lista segmentos_entrada
                         }
                     }
                 }
-                
                 biombo = novo_biombo;
             }
             else
             {
-                /* Remove segmento que não é biombo */
                 arvore_remover(arvore, evento->segmento);
             }
         }
@@ -504,7 +449,8 @@ PoligonoVisibilidade calcular_visibilidade(Ponto origem, Lista segmentos_entrada
         atual = obter_proximo(atual);
     }
     
-    /* Limpa recursos temporários */
+    if (ultimo_ponto) destruir_ponto(ultimo_ponto);
+    
     arvore_destruir(arvore);
     destruir_lista(segmentos, destruir_segmento_callback);
     destruir_lista(eventos, destruir_evento);
@@ -516,43 +462,28 @@ PoligonoVisibilidade calcular_visibilidade(Ponto origem, Lista segmentos_entrada
  * Funções do Polígono
  * ============================================================================ */
 
+/* ============================================================================
+ * Funções do Polígono (Delegators)
+ * ============================================================================ */
+
 void destruir_poligono_visibilidade(PoligonoVisibilidade poligono)
 {
-    PoligonoInternal *p = (PoligonoInternal*)poligono;
-    if (p == NULL) return;
-    
-    if (p->vertices != NULL)
-    {
-        destruir_lista(p->vertices, (FuncaoDestruir)destruir_ponto);
-    }
-    
-    free(p);
+    poligono_destruir((Poligono)poligono);
 }
 
 int poligono_num_vertices(PoligonoVisibilidade poligono)
 {
-    PoligonoInternal *p = (PoligonoInternal*)poligono;
-    return p ? p->num_vertices : 0;
+    return poligono_qtd_vertices((Poligono)poligono);
 }
 
 Ponto poligono_obter_vertice(PoligonoVisibilidade poligono, int indice)
 {
-    PoligonoInternal *p = (PoligonoInternal*)poligono;
-    if (p == NULL || indice < 0 || indice >= p->num_vertices) return NULL;
-    
-    No atual = obter_primeiro(p->vertices);
-    for (int i = 0; i < indice && atual != NULL; i++)
-    {
-        atual = obter_proximo(atual);
-    }
-    
-    return atual ? (Ponto)obter_elemento(atual) : NULL;
+    return poligono_get_vertice((Poligono)poligono, indice);
 }
 
 Lista poligono_obter_vertices(PoligonoVisibilidade poligono)
 {
-    PoligonoInternal *p = (PoligonoInternal*)poligono;
-    return p ? p->vertices : NULL;
+    return poligono_obter_lista((Poligono)poligono);
 }
 
 /* ============================================================================
