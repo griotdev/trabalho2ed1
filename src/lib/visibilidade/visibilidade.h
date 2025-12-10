@@ -38,7 +38,8 @@ typedef void* PoligonoVisibilidade;
 PoligonoVisibilidade calcular_visibilidade(Ponto origem, Lista segmentos,
                                             double min_x, double min_y,
                                             double max_x, double max_y,
-                                            const char *algoritmo_ordenacao);
+                                            const char *tipo_ordenacao,
+                                            int limiar_insertion);
 
 /**
  * Destroi um polígono de visibilidade.

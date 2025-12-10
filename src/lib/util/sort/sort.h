@@ -26,8 +26,9 @@ typedef int (*FuncaoComparacao)(const void*, const void*);
  * @param size Tamanho de cada elemento
  * @param compar Função de comparação
  * @param alg Algoritmo a ser utilizado (ALG_QSORT ou ALG_MERGESORT)
+ * @param limiar Limiar para Insertion Sort (apenas para ALG_MERGESORT)
  */
 void ordenar(void *base, size_t nmemb, size_t size, 
-             FuncaoComparacao compar, AlgoritmoOrdenacao alg);
+             FuncaoComparacao compar, AlgoritmoOrdenacao alg, int limiar);
 
 #endif /* SORT_H */

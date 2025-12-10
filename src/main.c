@@ -282,8 +282,11 @@ int main(int argc, char *argv[])
         char nome_combinado[MAX_CAMINHO * 2];
         snprintf(nome_combinado, sizeof(nome_combinado), "%s-%s", nome_base, nome_base_qry);
         
-        const char *algoritmo = obter_algoritmo_ordenacao(args);
-        printf("\n[8] Processando arquivo .qry: %s (Ordenação: %s)\n", caminho_qry, algoritmo);
+        const char *tipo_ord = obter_tipo_ordenacao(args);
+        int limiar = obter_limiar_insertion(args);
+        
+        /* O print detalhado já é feito dentro do parser_qry, removendo redundância */
+        // printf("[8] Processando arquivo .qry: %s (Ordenação: %s, Limiar: %d)\n", caminho_qry, tipo_ord, limiar);
         
         /* Processa o arquivo .qry */
         int comandos = processar_arquivo_qry(
@@ -291,9 +294,10 @@ int main(int argc, char *argv[])
             lista_formas,
             lista_anteparos,
             obter_diretorio_saida(args),
-            nome_combinado,
+            nome_base, /* Nota: Passamos nome_base do .geo, o parser combina com .qry */
             bbox,
-            algoritmo
+            tipo_ord,
+            limiar
         );
         
         if (comandos >= 0)

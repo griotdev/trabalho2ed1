@@ -46,9 +46,10 @@ int processar_arquivo_qry(const char *caminho_qry,
                           Lista lista_formas,
                           Lista lista_anteparos,
                           const char *dir_saida,
-                          const char *nome_base,
+                          const char *sufixo_saida, // Renamed from nome_base
                           double bbox[4],
-                          const char *algoritmo_ordenacao)
+                          const char *tipo_ordenacao, // Renamed from algoritmo_ordenacao
+                          int limiar_insertion) // Added
 {
     if (caminho_qry == NULL)
     {
@@ -91,8 +92,8 @@ int processar_arquivo_qry(const char *caminho_qry,
             int lidos = sscanf(linha_limpa, "a %d %d %c", &id_inicio, &id_fim, &orientacao);
             if (lidos >= 2)
             {
-                printf("      [a] Anteparo IDs %d a %d (orient=%c)\n", 
-                       id_inicio, id_fim, orientacao);
+                printf("[8] Processando arquivo .qry: %s (Ordenação: %s, Limiar: %d)\n", 
+           caminho_qry, tipo_ordenacao ? tipo_ordenacao : "padrão", limiar_insertion);
                        
                 int convertidos = executar_cmd_a(lista_formas, lista_anteparos, 
                                                   id_inicio, id_fim, orientacao);
@@ -109,16 +110,17 @@ int processar_arquivo_qry(const char *caminho_qry,
         {
             /* Comando 'd x y sfx' */
             double x, y;
-            char sufixo[100];
+            char sufixo_cmd[100]; // Renamed to avoid conflict with function parameter
             
-            int lidos = sscanf(linha_limpa, "d %lf %lf %99s", &x, &y, sufixo);
+            int lidos = sscanf(linha_limpa, "d %lf %lf %99s", &x, &y, sufixo_cmd);
             if (lidos == 3)
             {
-                printf("      [d] Destruição em (%.2f, %.2f) sfx=%s\n", x, y, sufixo);
+                printf("      [d] Destruição em (%.2f, %.2f) sfx=%s\n", x, y, sufixo_cmd);
                 
                 Ponto origem = criar_ponto(x, y);
                 int destruidos = executar_cmd_d(origem, lista_formas, lista_anteparos,
-                                                 dir_saida, nome_base, sufixo, bbox, algoritmo_ordenacao);
+                                             dir_saida, sufixo_saida, sufixo_cmd, bbox,
+                                             tipo_ordenacao, limiar_insertion);
                 destruir_ponto(origem);
                 
                 printf("          %d formas destruídas\n", destruidos);
@@ -134,17 +136,18 @@ int processar_arquivo_qry(const char *caminho_qry,
         {
             /* Comando 'P x y cor sfx' ou 'p x y cor sfx' */
             double x, y;
-            char cor[50], sufixo[100];
+            char cor[50], sufixo_cmd[100]; // Renamed to avoid conflict with function parameter
             
             /* Pula o primeiro caractere (P ou p) e o espaço */
-            int lidos = sscanf(linha_limpa + 2, "%lf %lf %49s %99s", &x, &y, cor, sufixo);
+            int lidos = sscanf(linha_limpa + 2, "%lf %lf %49s %99s", &x, &y, cor, sufixo_cmd);
             if (lidos == 4)
             {
-                printf("      [P] Pintura em (%.2f, %.2f) cor=%s sfx=%s\n", x, y, cor, sufixo);
+                printf("      [P] Pintura em (%.2f, %.2f) cor=%s sfx=%s\n", x, y, cor, sufixo_cmd);
                 
                 Ponto origem = criar_ponto(x, y);
                 int pintados = executar_cmd_p(origem, lista_formas, lista_anteparos,
-                                               cor, dir_saida, nome_base, sufixo, bbox, algoritmo_ordenacao);
+                                           cor, dir_saida, sufixo_saida, sufixo_cmd, bbox,
+                                           tipo_ordenacao, limiar_insertion);
                 destruir_ponto(origem);
                 
                 printf("          %d formas pintadas\n", pintados);
@@ -160,18 +163,19 @@ int processar_arquivo_qry(const char *caminho_qry,
         {
             /* Comando 'cln x y dx dy sfx' */
             double x, y, dx, dy;
-            char sufixo[100];
+            char sufixo_cmd[100]; // Renamed to avoid conflict with function parameter
             
-            int lidos = sscanf(linha_limpa, "cln %lf %lf %lf %lf %99s", &x, &y, &dx, &dy, sufixo);
+            int lidos = sscanf(linha_limpa, "cln %lf %lf %lf %lf %99s", &x, &y, &dx, &dy, sufixo_cmd);
             if (lidos == 5)
             {
                 printf("      [cln] Clonagem em (%.2f, %.2f) delta=(%.2f, %.2f) sfx=%s\n", 
-                       x, y, dx, dy, sufixo);
+                       x, y, dx, dy, sufixo_cmd);
                 
                 Ponto origem = criar_ponto(x, y);
                 int clonados = executar_cmd_cln(origem, lista_formas, lista_anteparos,
-                                                 dx, dy, dir_saida, nome_base, sufixo, 
-                                                 bbox, &proximo_id, algoritmo_ordenacao);
+                                             dx, dy, dir_saida, sufixo_saida, sufixo_cmd,
+                                             bbox, &proximo_id,
+                                             tipo_ordenacao, limiar_insertion);
                 destruir_ponto(origem);
                 
                 printf("          %d formas clonadas\n", clonados);

@@ -182,7 +182,7 @@ static Lista extrair_eventos(Lista segmentos, Ponto origem)
 /**
  * Ordena lista de eventos por ângulo.
  */
-static void ordenar_eventos(Lista eventos, const char *algoritmo)
+static void ordenar_eventos(Lista eventos, const char *tipo_ordenacao, int limiar)
 {
     int n = obter_tamanho(eventos);
     if (n <= 1) return;
@@ -200,22 +200,13 @@ static void ordenar_eventos(Lista eventos, const char *algoritmo)
     
     /* Seleciona algoritmo */
     AlgoritmoOrdenacao alg_enum = ALG_QSORT;
-    if (algoritmo != NULL && strcmp(algoritmo, "mergesort") == 0)
+    if (tipo_ordenacao != NULL && strcmp(tipo_ordenacao, "mergesort") == 0)
     {
         alg_enum = ALG_MERGESORT;
     }
     
     /* Ordena usando o módulo sort */
-    ordenar((void*)arr, n, sizeof(Evento*), comparar_eventos, alg_enum);
-    
-    /* Reconstrói a lista na ordem correta */
-    atual = obter_primeiro(eventos);
-    for (int i = 0; i < n && atual != NULL; i++)
-    {
-        /* Troca o elemento no nó (hack para reordenar sem realocar nós) */
-        /* Por simplicidade, vamos reconstruir a lista */
-        atual = obter_proximo(atual);
-    }
+    ordenar((void*)arr, n, sizeof(Evento*), comparar_eventos, alg_enum, limiar);
     
     /* Limpa a lista original e reinsere ordenado */
     while (!lista_vazia(eventos))
@@ -238,7 +229,8 @@ static void ordenar_eventos(Lista eventos, const char *algoritmo)
 PoligonoVisibilidade calcular_visibilidade(Ponto origem, Lista segmentos_entrada,
                                             double min_x, double min_y,
                                             double max_x, double max_y,
-                                            const char *algoritmo_ordenacao)
+                                            const char *tipo_ordenacao,
+                                            int limiar_insertion)
 {
     if (origem == NULL) return NULL;
     
@@ -271,7 +263,7 @@ PoligonoVisibilidade calcular_visibilidade(Ponto origem, Lista segmentos_entrada
     }
     
     /* Ordena eventos por ângulo */
-    ordenar_eventos(eventos, algoritmo_ordenacao);
+    ordenar_eventos(eventos, tipo_ordenacao, limiar_insertion);
     
     /* Cria árvore de segmentos ativos */
     ArvoreSegmentos arvore = arvore_criar(origem);

@@ -112,7 +112,8 @@ int executar_cmd_d(Ponto origem,
 
                    const char *sufixo,
                    double bbox[4],
-                   const char *algoritmo_ordenacao)
+                   const char *tipo_ordenacao,
+                   int limiar_insertion)
 {
     if (origem == NULL || lista_formas == NULL)
     {
@@ -123,7 +124,7 @@ int executar_cmd_d(Ponto origem,
     PoligonoVisibilidade poligono = calcular_visibilidade(
         origem, lista_anteparos,
         bbox[0], bbox[1], bbox[2], bbox[3],
-        algoritmo_ordenacao
+        tipo_ordenacao, limiar_insertion
     );
     
     if (poligono == NULL)

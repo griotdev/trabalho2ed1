@@ -26,7 +26,9 @@ int processar_arquivo_qry(const char *caminho_qry,
                           Lista lista_anteparos,
                           const char *dir_saida,
                           const char *nome_base,
+
                           double bbox[4],
-                          const char *algoritmo_ordenacao);
+                          const char *tipo_ordenacao,
+                          int limiar_insertion);
 
 #endif /* PARSER_QRY_H */

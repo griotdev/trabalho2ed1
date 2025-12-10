@@ -30,7 +30,9 @@ int executar_cmd_d(Ponto origem,
                    const char *dir_saida,
                    const char *nome_base,
                    const char *sufixo,
+
                    double bbox[4],
-                   const char *algoritmo_ordenacao);
+                   const char *tipo_ordenacao,
+                   int limiar_insertion);
 
 #endif /* CMD_D_H */

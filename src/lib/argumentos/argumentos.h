@@ -86,15 +86,19 @@ const char* obter_diretorio_saida(Argumentos args);
  * @param args Ponteiro para a estrutura Argumentos
  * @return String com o nome do arquivo, ou NULL se não houver consulta
  */
-const char* obter_arquivo_qry(Argumentos args);
+const char* obter_arquivo_qry(Argumentos argumentos);
 
 /**
- * Obtém o algoritmo de ordenação (-oa).
- * 
- * @param args Ponteiro para a estrutura Argumentos
- * @return String com o nome do algoritmo (default: "qsort")
+ * Obtém o tipo de ordenação (-to).
+ * Default: "qsort".
  */
-const char* obter_algoritmo_ordenacao(Argumentos args);
+const char* obter_tipo_ordenacao(Argumentos argumentos);
+
+/**
+ * Obtém o limiar para Insertion Sort (-in).
+ * Default: 10.
+ */
+int obter_limiar_insertion(Argumentos argumentos);
 
 /* ============================================================================
  * Funções Auxiliares

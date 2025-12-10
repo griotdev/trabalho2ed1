@@ -37,6 +37,7 @@ int executar_cmd_cln(Ponto origem,
                      const char *sufixo,
                      double bbox[4],
                      int *proximo_id,
-                     const char *algoritmo_ordenacao);
+                     const char *tipo_ordenacao,
+                     int limiar_insertion);
 
 #endif /* CMD_CLN_H */

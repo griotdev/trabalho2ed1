@@ -7,8 +7,7 @@
 #include <string.h>
 #include "sort.h"
 
-/* Limite para trocar MergeSort por InsertionSort (otimização) */
-#define INSERTION_THRESHOLD 15
+
 
 /* ============================================================================
  * Algoritmos Auxiliares
@@ -88,12 +87,12 @@ static void merge(char *base, size_t left, size_t mid, size_t right,
  * Implementação recursiva do MergeSort Híbrido.
  */
 static void mergesort_recursivo(char *base, size_t left, size_t right, 
-                                size_t size, FuncaoComparacao compar, char *aux)
+                                size_t size, FuncaoComparacao compar, char *aux, int limiar)
 {
     size_t n = right - left;
     
     /* Caso base: array pequeno, usa Insertion Sort */
-    if (n <= INSERTION_THRESHOLD)
+    if ((int)n <= limiar)
     {
         insertion_sort(base + left * size, n, size, compar);
         return;
@@ -101,8 +100,8 @@ static void mergesort_recursivo(char *base, size_t left, size_t right,
     
     size_t mid = left + n / 2;
     
-    mergesort_recursivo(base, left, mid, size, compar, aux);
-    mergesort_recursivo(base, mid, right, size, compar, aux);
+    mergesort_recursivo(base, left, mid, size, compar, aux, limiar);
+    mergesort_recursivo(base, mid, right, size, compar, aux, limiar);
     
     merge(base, left, mid, right, size, compar, aux);
 }
@@ -110,7 +109,7 @@ static void mergesort_recursivo(char *base, size_t left, size_t right,
 /**
  * Wrapper para o MergeSort.
  */
-static void mergesort_hibrido(void *base, size_t nmemb, size_t size, FuncaoComparacao compar)
+static void mergesort_hibrido(void *base, size_t nmemb, size_t size, FuncaoComparacao compar, int limiar)
 {
     if (nmemb < 2) return;
     
@@ -125,7 +124,7 @@ static void mergesort_hibrido(void *base, size_t nmemb, size_t size, FuncaoCompa
         return;
     }
     
-    mergesort_recursivo((char*)base, 0, nmemb, size, compar, aux);
+    mergesort_recursivo((char*)base, 0, nmemb, size, compar, aux, limiar);
     
     free(aux);
 }
@@ -135,11 +134,11 @@ static void mergesort_hibrido(void *base, size_t nmemb, size_t size, FuncaoCompa
  * ============================================================================ */
 
 void ordenar(void *base, size_t nmemb, size_t size, 
-             FuncaoComparacao compar, AlgoritmoOrdenacao alg)
+             FuncaoComparacao compar, AlgoritmoOrdenacao alg, int limiar)
 {
     if (alg == ALG_MERGESORT)
     {
-        mergesort_hibrido(base, nmemb, size, compar);
+        mergesort_hibrido(base, nmemb, size, compar, limiar);
     }
     else
     {
