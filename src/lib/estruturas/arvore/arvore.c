@@ -103,33 +103,7 @@ static NoArvore* encontrar_sucessor(NoArvore *no)
     return pai;
 }
 
-/**
- * Encontra um nó com dado segmento.
- */
-static NoArvore* encontrar_no(ArvoreInternal *arv, Segmento seg)
-{
-    NoArvore *atual = arv->raiz;
-    
-    while (atual != NULL)
-    {
-        if (atual->segmento == seg)
-        {
-            return atual;
-        }
-        
-        int cmp = comparar_segmentos(arv, seg, atual->segmento);
-        if (cmp < 0)
-        {
-            atual = atual->esquerda;
-        }
-        else
-        {
-            atual = atual->direita;
-        }
-    }
-    
-    return NULL;
-}
+
 
 /**
  * Transplanta uma subárvore (usada na remoção).

@@ -99,71 +99,93 @@ dirs:
 	@mkdir -p $(BUILD_DIR)
 
 $(TARGET): $(OBJECTS) $(MAIN_OBJ)
-	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+	@echo "Linkando executável final: $@"
+	@$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
 # Regras de compilação
 $(BUILD_DIR)/argumentos.o: $(ARGUMENTOS_SRC)
-	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+	@echo "Compilando módulo argumentos..."
+	@$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
 $(BUILD_DIR)/lista.o: $(LISTA_SRC)
-	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+	@echo "Compilando módulo lista..."
+	@$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
 $(BUILD_DIR)/arvore.o: $(ARVORE_SRC)
-	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+	@echo "Compilando módulo arvore..."
+	@$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
 $(BUILD_DIR)/circulo.o: $(CIRCULO_SRC)
-	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+	@echo "Compilando módulo circulo..."
+	@$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
 $(BUILD_DIR)/retangulo.o: $(RETANGULO_SRC)
-	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+	@echo "Compilando módulo retangulo..."
+	@$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
 $(BUILD_DIR)/linha.o: $(LINHA_SRC)
-	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+	@echo "Compilando módulo linha..."
+	@$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
 $(BUILD_DIR)/texto.o: $(TEXTO_SRC)
-	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+	@echo "Compilando módulo texto..."
+	@$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
 $(BUILD_DIR)/formas.o: $(FORMAS_SRC)
-	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+	@echo "Compilando módulo formas..."
+	@$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
 $(BUILD_DIR)/parser_geo.o: $(PARSER_GEO_SRC)
-	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+	@echo "Compilando módulo parser_geo..."
+	@$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
 $(BUILD_DIR)/svg.o: $(SVG_SRC)
-	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+	@echo "Compilando módulo svg..."
+	@$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
 $(BUILD_DIR)/ponto.o: $(PONTO_SRC)
-	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+	@echo "Compilando módulo ponto..."
+	@$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
 $(BUILD_DIR)/segmento.o: $(SEGMENTO_SRC)
-	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+	@echo "Compilando módulo segmento..."
+	@$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
 $(BUILD_DIR)/calculos.o: $(CALCULOS_SRC)
-	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+	@echo "Compilando módulo calculos..."
+	@$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
 $(BUILD_DIR)/visibilidade.o: $(VISIBILIDADE_SRC)
-	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+	@echo "Compilando módulo visibilidade..."
+	@$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
 $(BUILD_DIR)/parser_qry.o: $(PARSER_QRY_SRC)
-	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+	@echo "Compilando módulo parser_qry..."
+	@$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
 $(BUILD_DIR)/cmd_a.o: $(CMD_A_SRC)
-	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+	@echo "Compilando módulo cmd_a..."
+	@$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
 $(BUILD_DIR)/cmd_d.o: $(CMD_D_SRC)
-	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+	@echo "Compilando módulo cmd_d..."
+	@$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
 $(BUILD_DIR)/cmd_p.o: $(CMD_P_SRC)
-	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+	@echo "Compilando módulo cmd_p..."
+	@$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
 $(BUILD_DIR)/cmd_cln.o: $(CMD_CLN_SRC)
-	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+	@echo "Compilando módulo cmd_cln..."
+	@$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
 $(BUILD_DIR)/main.o: $(MAIN_SRC)
-	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+	@echo "Compilando entry point main..."
+	@$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
 $(BUILD_DIR)/sort.o: $(SORT_SRC)
-	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+	@echo "Compilando módulo sort..."
+	@$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
 # Limpeza
 clean:
