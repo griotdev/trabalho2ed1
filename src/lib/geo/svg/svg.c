@@ -405,6 +405,7 @@ void svg_desenhar_poligono_visibilidade(SvgContexto svg, void *poligono,
             {
                 fprintf(ctx->arquivo, " ");
             }
+            destruir_ponto(v);  /* Libera o ponto criado por poligono_obter_vertice */
         }
     }
     
