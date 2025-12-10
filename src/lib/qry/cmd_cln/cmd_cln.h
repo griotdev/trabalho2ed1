@@ -38,6 +38,8 @@ int executar_cmd_cln(Ponto origem,
                      double bbox[4],
                      int *proximo_id,
                      const char *tipo_ordenacao,
-                     int limiar_insertion);
+                     int limiar_insertion,
+                     Lista acumulador_poligonos,
+                     Lista acumulador_bombas);
 
 #endif /* CMD_CLN_H */

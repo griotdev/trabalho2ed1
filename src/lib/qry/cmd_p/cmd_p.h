@@ -35,6 +35,8 @@ int executar_cmd_p(Ponto origem,
 
                    double bbox[4],
                    const char *tipo_ordenacao,
-                   int limiar_insertion);
+                   int limiar_insertion,
+                   Lista acumulador_poligonos,
+                   Lista acumulador_bombas);
 
 #endif /* CMD_P_H */

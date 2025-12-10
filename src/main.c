@@ -294,7 +294,7 @@ int main(int argc, char *argv[])
             lista_formas,
             lista_anteparos,
             obter_diretorio_saida(args),
-            nome_base, /* Nota: Passamos nome_base do .geo, o parser combina com .qry */
+            nome_combinado, /* Agora passamos o nome combinado (geo-qry) */
             bbox,
             tipo_ord,
             limiar

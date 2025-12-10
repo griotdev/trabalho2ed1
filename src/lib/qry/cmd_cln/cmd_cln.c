@@ -185,7 +185,9 @@ int executar_cmd_cln(Ponto origem,
                      double bbox[4],
                      int *proximo_id,
                      const char *tipo_ordenacao,
-                     int limiar_insertion)
+                     int limiar_insertion,
+                     Lista acumulador_poligonos,
+                     Lista acumulador_bombas)
 {
     if (origem == NULL || lista_formas == NULL || proximo_id == NULL)
     {
@@ -251,17 +253,28 @@ int executar_cmd_cln(Ponto origem,
     snprintf(caminho_txt, MAX_CAMINHO, "%s/%s.txt", dir_saida, nome_base);
     gerar_relatorio_txt(caminho_txt, clones, dx, dy);
     
-    /* SVG: sempre cria arquivo (sufixo "-" usa nome base) */
+    /* SVG: Gerencia saída baseada no sufixo */
+    if (strcmp(sufixo, "-") == 0)
     {
-        char caminho_svg[MAX_CAMINHO];
-        if (strcmp(sufixo, "-") == 0)
+        /* Acumula para desenho final */
+        if (acumulador_poligonos != NULL && acumulador_bombas != NULL)
         {
-            snprintf(caminho_svg, MAX_CAMINHO, "%s/%s.svg", dir_saida, nome_base);
+            inserir_fim(acumulador_poligonos, poligono);
+            
+            /* Clona o ponto para salvar na lista */
+            Ponto bomba_clone = criar_ponto(get_ponto_x(origem), get_ponto_y(origem));
+            inserir_fim(acumulador_bombas, bomba_clone);
         }
         else
         {
-            snprintf(caminho_svg, MAX_CAMINHO, "%s/%s-%s.svg", dir_saida, nome_base, sufixo);
+            destruir_poligono_visibilidade(poligono);
         }
+    }
+    else
+    {
+        /* Cria arquivo específico para este comando */
+        char caminho_svg[MAX_CAMINHO];
+        snprintf(caminho_svg, MAX_CAMINHO, "%s/%s-%s.svg", dir_saida, nome_base, sufixo);
         
         /* Usa viewBox com as dimensões do cenário */
         double margem = 10.0;
@@ -275,33 +288,30 @@ int executar_cmd_cln(Ponto origem,
         
         if (svg != NULL)
         {
-            /* 1. Desenha as formas originais (inclui clones já adicionados) */
-            svg_comentario(svg, "Formas originais do cenário (com clones)");
+            /* 1. Desenha as formas originais (com clones) */
+            svg_comentario(svg, "Formas originais do cenário");
             svg_desenhar_lista(svg, lista_formas);
             
-            /* 2. Desenha os anteparos (segmentos bloqueantes) */
+            /* 2. Desenha os anteparos */
             if (lista_anteparos != NULL && !lista_vazia(lista_anteparos))
             {
                 svg_desenhar_lista_segmentos(svg, lista_anteparos);
             }
             
-            /* 3. Desenha a região de visibilidade (polígono semi-transparente) */
+            /* 3. Desenha a região de visibilidade */
             svg_desenhar_poligono_visibilidade(svg, poligono, 
                                                 "none", "#FFFF00", 0.3);
             
-            /* 4. Desenha a bomba (ponto de origem) */
+            /* 4. Desenha a bomba */
             svg_desenhar_bomba(svg, get_ponto_x(origem), get_ponto_y(origem), 
                                5.0, "#FF0000");
             
             finalizar_svg(svg);
             printf("          SVG gerado: %s\n", caminho_svg);
         }
+        /* Destroi poligono */
+        destruir_poligono_visibilidade(poligono);
     }
-    
-    /* Limpa listas temporárias (não destrói formas) */
-    destruir_lista(formas_para_clonar, NULL);
-    destruir_lista(clones, NULL);
-    destruir_poligono_visibilidade(poligono);
     if (vertices != NULL) free(vertices);
     
     (void)sufixo;

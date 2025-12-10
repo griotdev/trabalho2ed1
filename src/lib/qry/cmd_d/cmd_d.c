@@ -113,7 +113,9 @@ int executar_cmd_d(Ponto origem,
                    const char *sufixo,
                    double bbox[4],
                    const char *tipo_ordenacao,
-                   int limiar_insertion)
+                   int limiar_insertion,
+                   Lista acumulador_poligonos,
+                   Lista acumulador_bombas)
 {
     if (origem == NULL || lista_formas == NULL)
     {
@@ -160,17 +162,30 @@ int executar_cmd_d(Ponto origem,
     snprintf(caminho_txt, MAX_CAMINHO, "%s/%s.txt", dir_saida, nome_base);
     gerar_relatorio_txt(caminho_txt, formas_visiveis);
     
-    /* SVG: sempre cria arquivo de consultas (sufixo "-" usa nome "-consultas") */
+    /* SVG: Gerencia saída baseada no sufixo */
+    if (strcmp(sufixo, "-") == 0)
     {
-        char caminho_svg[MAX_CAMINHO];
-        if (strcmp(sufixo, "-") == 0)
+        /* Acumula para desenho final */
+        if (acumulador_poligonos != NULL && acumulador_bombas != NULL)
         {
-            snprintf(caminho_svg, MAX_CAMINHO, "%s/%s.svg", dir_saida, nome_base);
+            inserir_fim(acumulador_poligonos, poligono);
+            
+            /* Clona o ponto para salvar na lista (pois origem será destruída) */
+            Ponto bomba_clone = criar_ponto(get_ponto_x(origem), get_ponto_y(origem));
+            inserir_fim(acumulador_bombas, bomba_clone);
+            
+            /* NÃO destroi poligono aqui, será destruído no final do parser */
         }
         else
         {
-            snprintf(caminho_svg, MAX_CAMINHO, "%s/%s-%s.svg", dir_saida, nome_base, sufixo);
+            destruir_poligono_visibilidade(poligono);
         }
+    }
+    else
+    {
+        /* Cria arquivo específico para este comando */
+        char caminho_svg[MAX_CAMINHO];
+        snprintf(caminho_svg, MAX_CAMINHO, "%s/%s-%s.svg", dir_saida, nome_base, sufixo);
         
         /* Usa viewBox com as dimensões do cenário */
         double margem = 10.0;
@@ -205,13 +220,15 @@ int executar_cmd_d(Ponto origem,
             finalizar_svg(svg);
             printf("          SVG gerado: %s\n", caminho_svg);
         }
+        
+        /* Destroi poligono (não foi acumulado) */
+        destruir_poligono_visibilidade(poligono);
     }
     
-    /* Limpa (não destrói as formas, só a lista temporária) */
-    destruir_lista(formas_visiveis, NULL);
-    destruir_poligono_visibilidade(poligono);
     if (vertices != NULL) free(vertices);
+    
+    /* Destroi listas temporárias */
+    destruir_lista(formas_visiveis, NULL);
     
     return contador;
 }
-

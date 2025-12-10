@@ -7,7 +7,7 @@ CFLAGS = -std=c99 -fstack-protector-all -Wall -Wextra -Wno-format-truncation -g
 LDFLAGS = -lm
 
 LIB_DIR = lib
-BUILD_DIR = build
+BUILD_DIR = obj
 TARGET = ted
 
 # =============================================================================

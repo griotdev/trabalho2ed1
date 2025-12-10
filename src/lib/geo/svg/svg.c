@@ -201,15 +201,19 @@ void svg_desenhar_texto(SvgContexto svg, Texto t)
     const char *ancora_svg = converter_ancora(getTextoAncora(t));
     const char *weight_svg = converter_font_weight(getTextoFontWeight(t));
     
+    /* Ajuste de família de fonte e unidade */
+    const char *family = getTextoFontFamily(t);
+    if (strcmp(family, "sans") == 0) family = "sans-serif";
+    
     fprintf(ctx->arquivo,
             "  <text x=\"%.2f\" y=\"%.2f\" "
-            "font-family=\"%s\" font-weight=\"%s\" font-size=\"%.2f\" "
+            "font-family=\"%s\" font-weight=\"%s\" font-size=\"%.2fpt\" "
             "text-anchor=\"%s\" "
             "stroke=\"%s\" fill=\"%s\">"
-            "%s</text>\n",
+            "<![CDATA[ %s ]]></text>\n",
             getTextoX(t),
             getTextoY(t),
-            getTextoFontFamily(t),
+            family,
             weight_svg,
             getTextoFontSize(t),
             ancora_svg,
