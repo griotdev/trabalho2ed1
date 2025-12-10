@@ -1,0 +1,6 @@
+# Teste: Duas bombas em sequência
+# Primeira bomba destrói anteparos visíveis
+# Segunda bomba deve ver mais longe (anteparos removidos)
+a 12 12 v
+d 40.00 40.00 bomb1
+d 60.00 60.00 bomb2

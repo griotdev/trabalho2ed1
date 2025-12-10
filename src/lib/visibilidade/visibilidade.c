@@ -458,6 +458,343 @@ PoligonoVisibilidade calcular_visibilidade(Ponto origem, Lista segmentos_entrada
     return (PoligonoVisibilidade)resultado;
 }
 
+/* Função auxiliar para verificar se segmento já está na lista (evita duplicatas) */
+static int segmento_na_lista(Lista lista, Segmento seg)
+{
+    if (lista == NULL || seg == NULL) return 0;
+    
+    int id = get_segmento_id(seg);
+    No atual = obter_primeiro(lista);
+    while (atual != NULL)
+    {
+        Segmento s = (Segmento)obter_elemento(atual);
+        if (get_segmento_id(s) == id) return 1;
+        atual = obter_proximo(atual);
+    }
+    return 0;
+}
+
+/* Função auxiliar para verificar se é segmento de bounding box (ID negativo) */
+static int eh_segmento_bbox(Segmento seg)
+{
+    return get_segmento_id(seg) < 0;
+}
+
+PoligonoVisibilidade calcular_visibilidade_com_segmentos(
+    Ponto origem, Lista segmentos_entrada,
+    double min_x, double min_y,
+    double max_x, double max_y,
+    const char *tipo_ordenacao,
+    int limiar_insertion,
+    Lista segmentos_visiveis)
+{
+    if (origem == NULL) return NULL;
+    
+    /* Cria lista de segmentos de trabalho (cópia + bounding box) */
+    Lista segmentos = criar_lista();
+    if (segmentos == NULL) return NULL;
+    
+    /* Cria mapeamento de clones para originais */
+    Lista segmentos_originais = criar_lista(); /* Lista paralela dos originais */
+    
+    /* Copia segmentos de entrada, mantendo referência aos originais */
+    if (segmentos_entrada != NULL)
+    {
+        No atual = obter_primeiro(segmentos_entrada);
+        while (atual != NULL)
+        {
+            Segmento seg = (Segmento)obter_elemento(atual);
+            inserir_fim(segmentos, clonar_segmento(seg));
+            inserir_fim(segmentos_originais, seg); /* Referência ao original */
+            atual = obter_proximo(atual);
+        }
+    }
+    
+    /* Expande bounding box para incluir a origem */
+    double ox = get_ponto_x(origem);
+    double oy = get_ponto_y(origem);
+    if (ox < min_x) min_x = ox;
+    if (ox > max_x) max_x = ox;
+    if (oy < min_y) min_y = oy;
+    if (oy > max_y) max_y = oy;
+    
+    /* Adiciona bounding box (segmentos artificiais com ID negativo) */
+    criar_bounding_box(segmentos, min_x, min_y, max_x, max_y);
+    
+    /* PRÉ-PROCESSAMENTO: Divisão de Segmentos no Ângulo 0 */
+    No node_seg = obter_primeiro(segmentos);
+    while (node_seg != NULL)
+    {
+        Segmento seg = (Segmento)obter_elemento(node_seg);
+        No proximo_node = obter_proximo(node_seg);
+        
+        Ponto dir_zero = criar_ponto(ox + 1.0, oy);
+        Ponto intersecao = NULL;
+        
+        if (intersecao_raio_segmento(origem, dir_zero, seg, &intersecao))
+        {
+            double ix = get_ponto_x(intersecao);
+            double iy = get_ponto_y(intersecao);
+            
+            double x1 = get_segmento_x1(seg);
+            double y1 = get_segmento_y1(seg);
+            double x2 = get_segmento_x2(seg);
+            double y2 = get_segmento_y2(seg);
+            
+            if (hypot(ix - x1, iy - y1) > EPSILON &&
+                hypot(ix - x2, iy - y2) > EPSILON)
+            {
+                int id = get_segmento_id(seg);
+                int id_orig = get_segmento_id_original(seg);
+                const char *cor = get_segmento_cor(seg);
+                
+                Segmento s1 = criar_segmento(id, id_orig, x1, y1, ix, iy, cor);
+                Segmento s2 = criar_segmento(id, id_orig, ix, iy, x2, y2, cor);
+                
+                inserir_fim(segmentos, s1);
+                inserir_fim(segmentos, s2);
+                
+                void *removido = remover_no(segmentos, node_seg);
+                if (removido) destruir_segmento((Segmento)removido);
+            }
+            destruir_ponto(intersecao);
+        }
+        destruir_ponto(dir_zero);
+        
+        node_seg = proximo_node;
+    }
+    
+    /* Cria lista de eventos */
+    Lista eventos = criar_lista();
+    No atual = obter_primeiro(segmentos);
+    while (atual != NULL)
+    {
+        Segmento seg = (Segmento)obter_elemento(atual);
+        Ponto p1 = get_segmento_p1(seg);
+        Ponto p2 = get_segmento_p2(seg);
+        
+        double ang1 = ponto_angulo_polar(origem, p1);
+        double ang2 = ponto_angulo_polar(origem, p2);
+        
+        if (ang1 < ang2 || (fabs(ang1 - ang2) < EPSILON && 
+            ponto_distancia(origem, p1) < ponto_distancia(origem, p2)))
+        {
+            inserir_fim(eventos, criar_evento(p1, EVENTO_INICIO, seg, origem));
+            inserir_fim(eventos, criar_evento(p2, EVENTO_FIM, seg, origem));
+        }
+        else
+        {
+            inserir_fim(eventos, criar_evento(p2, EVENTO_INICIO, seg, origem));
+            inserir_fim(eventos, criar_evento(p1, EVENTO_FIM, seg, origem));
+        }
+        
+        atual = obter_proximo(atual);
+    }
+    
+    /* Ordena eventos */
+    ordenar_eventos(eventos, tipo_ordenacao, limiar_insertion);
+    
+    /* Inicializa árvore de segmentos ativos */
+    ArvoreSegmentos arvore = arvore_criar(origem);
+    
+    /* Inicialização: insere segmentos no ângulo 0 */
+    atual = obter_primeiro(segmentos);
+    while (atual != NULL)
+    {
+        Segmento seg = (Segmento)obter_elemento(atual);
+        Ponto p1 = get_segmento_p1(seg);
+        Ponto p2 = get_segmento_p2(seg);
+        
+        double ang1 = ponto_angulo_polar(origem, p1);
+        double ang2 = ponto_angulo_polar(origem, p2);
+        
+        if ((ang1 < EPSILON && ang2 > M_PI) || (ang2 < EPSILON && ang1 > M_PI))
+        {
+            arvore_definir_angulo(arvore, 0.0);
+            arvore_inserir(arvore, seg);
+        }
+        
+        atual = obter_proximo(atual);
+    }
+    
+    /* Cria polígono de saída */
+    Poligono resultado = poligono_criar();
+    if (resultado == NULL)
+    {
+        destruir_lista(segmentos, destruir_segmento_callback);
+        destruir_lista(segmentos_originais, NULL);
+        destruir_lista(eventos, destruir_evento);
+        arvore_destruir(arvore);
+        return NULL;
+    }
+    
+    /* Ponto inicial do polígono */
+    Segmento biombo = arvore_obter_primeiro(arvore);
+    Ponto ultimo_ponto = NULL;
+    
+    if (biombo != NULL)
+    {
+        Ponto dir = criar_ponto(ox + 1000, oy);
+        Ponto intersecao = NULL;
+        
+        if (intersecao_raio_segmento(origem, dir, biombo, &intersecao))
+        {
+            poligono_inserir_vertice(resultado, get_ponto_x(intersecao), get_ponto_y(intersecao));
+            ultimo_ponto = intersecao;
+            
+            /* Registra biombo inicial como visível */
+            if (segmentos_visiveis != NULL && !eh_segmento_bbox(biombo))
+            {
+                /* Encontra o segmento original correspondente */
+                int idx = 0;
+                No ns = obter_primeiro(segmentos_entrada);
+                while (ns != NULL)
+                {
+                    Segmento orig = (Segmento)obter_elemento(ns);
+                    if (get_segmento_id(orig) == get_segmento_id(biombo) &&
+                        !segmento_na_lista(segmentos_visiveis, orig))
+                    {
+                        inserir_fim(segmentos_visiveis, orig);
+                        break;
+                    }
+                    ns = obter_proximo(ns);
+                    idx++;
+                }
+            }
+        }
+        destruir_ponto(dir);
+    }
+    
+    /* Loop principal de varredura */
+    atual = obter_primeiro(eventos);
+    while (atual != NULL)
+    {
+        Evento *evento = (Evento*)obter_elemento(atual);
+        arvore_definir_angulo(arvore, evento->angulo);
+        
+        if (evento->tipo == EVENTO_INICIO)
+        {
+            arvore_inserir(arvore, evento->segmento);
+            Segmento novo_biombo = arvore_obter_primeiro(arvore);
+            
+            if (novo_biombo == evento->segmento && biombo != evento->segmento)
+            {
+                if (biombo != NULL && ultimo_ponto != NULL)
+                {
+                    Ponto intersecao = NULL;
+                    if (intersecao_raio_segmento(origem, evento->ponto, biombo, &intersecao))
+                    {
+                        if (!ponto_igual(ultimo_ponto, intersecao))
+                        {
+                            poligono_inserir_vertice(resultado, get_ponto_x(intersecao), get_ponto_y(intersecao));
+                            destruir_ponto(ultimo_ponto);
+                            ultimo_ponto = intersecao;
+                        }
+                        else
+                        {
+                            destruir_ponto(intersecao);
+                        }
+                    }
+                }
+                
+                Ponto pt = evento->ponto;
+                if (!ultimo_ponto || !ponto_igual(ultimo_ponto, pt))
+                {
+                    poligono_inserir_vertice(resultado, get_ponto_x(pt), get_ponto_y(pt));
+                    if(ultimo_ponto) destruir_ponto(ultimo_ponto);
+                    ultimo_ponto = clonar_ponto(pt);
+                }
+                
+                /* Registra novo biombo como visível */
+                if (segmentos_visiveis != NULL && !eh_segmento_bbox(novo_biombo))
+                {
+                    No ns = obter_primeiro(segmentos_entrada);
+                    while (ns != NULL)
+                    {
+                        Segmento orig = (Segmento)obter_elemento(ns);
+                        if (get_segmento_id(orig) == get_segmento_id(novo_biombo) &&
+                            !segmento_na_lista(segmentos_visiveis, orig))
+                        {
+                            inserir_fim(segmentos_visiveis, orig);
+                            break;
+                        }
+                        ns = obter_proximo(ns);
+                    }
+                }
+                
+                biombo = novo_biombo;
+            }
+        }
+        else /* EVENTO_FIM */
+        {
+            if (evento->segmento == biombo)
+            {
+                Ponto pt = evento->ponto;
+                if (!ultimo_ponto || !ponto_igual(ultimo_ponto, pt))
+                {
+                    poligono_inserir_vertice(resultado, get_ponto_x(pt), get_ponto_y(pt));
+                    if(ultimo_ponto) destruir_ponto(ultimo_ponto);
+                    ultimo_ponto = clonar_ponto(pt);
+                }
+                
+                arvore_remover(arvore, evento->segmento);
+                Segmento novo_biombo = arvore_obter_primeiro(arvore);
+                
+                if (novo_biombo != NULL)
+                {
+                    Ponto intersecao = NULL;
+                    if (intersecao_raio_segmento(origem, evento->ponto, novo_biombo, &intersecao))
+                    {
+                        if (!ultimo_ponto || !ponto_igual(ultimo_ponto, intersecao))
+                        {
+                             poligono_inserir_vertice(resultado, get_ponto_x(intersecao), get_ponto_y(intersecao));
+                             if(ultimo_ponto) destruir_ponto(ultimo_ponto);
+                             ultimo_ponto = intersecao;
+                        }
+                        else
+                        {
+                            destruir_ponto(intersecao);
+                        }
+                    }
+                    
+                    /* Registra novo biombo como visível */
+                    if (segmentos_visiveis != NULL && !eh_segmento_bbox(novo_biombo))
+                    {
+                        No ns = obter_primeiro(segmentos_entrada);
+                        while (ns != NULL)
+                        {
+                            Segmento orig = (Segmento)obter_elemento(ns);
+                            if (get_segmento_id(orig) == get_segmento_id(novo_biombo) &&
+                                !segmento_na_lista(segmentos_visiveis, orig))
+                            {
+                                inserir_fim(segmentos_visiveis, orig);
+                                break;
+                            }
+                            ns = obter_proximo(ns);
+                        }
+                    }
+                }
+                biombo = novo_biombo;
+            }
+            else
+            {
+                arvore_remover(arvore, evento->segmento);
+            }
+        }
+        
+        atual = obter_proximo(atual);
+    }
+    
+    if (ultimo_ponto) destruir_ponto(ultimo_ponto);
+    
+    arvore_destruir(arvore);
+    destruir_lista(segmentos, destruir_segmento_callback);
+    destruir_lista(segmentos_originais, NULL);
+    destruir_lista(eventos, destruir_evento);
+    
+    return (PoligonoVisibilidade)resultado;
+}
+
 /* ============================================================================
  * Funções do Polígono
  * ============================================================================ */

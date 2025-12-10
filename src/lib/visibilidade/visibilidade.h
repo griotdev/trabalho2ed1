@@ -43,6 +43,30 @@ PoligonoVisibilidade calcular_visibilidade(Ponto origem, Lista segmentos,
                                             int limiar_insertion);
 
 /**
+ * Calcula o polígono de visibilidade e retorna os segmentos visíveis.
+ * 
+ * @param origem Ponto de vista (de onde a "luz" emana)
+ * @param segmentos Lista de Segmento (obstáculos)
+ * @param min_x Limite mínimo X do cenário (bounding box)
+ * @param min_y Limite mínimo Y do cenário
+ * @param max_x Limite máximo X do cenário
+ * @param max_y Limite máximo Y do cenário
+ * @param tipo_ordenacao "qsort" ou "mergesort"
+ * @param limiar_insertion Limiar para InsertionSort
+ * @param segmentos_visiveis OUT: Lista onde serão inseridos os segmentos que bloquearam luz.
+ *                           O chamador deve criar a lista antes e é responsável por destruí-la.
+ *                           Os segmentos NÃO são clonados, apenas referenciados.
+ * @return Polígono de visibilidade, ou NULL em caso de erro
+ */
+PoligonoVisibilidade calcular_visibilidade_com_segmentos(
+    Ponto origem, Lista segmentos,
+    double min_x, double min_y,
+    double max_x, double max_y,
+    const char *tipo_ordenacao,
+    int limiar_insertion,
+    Lista segmentos_visiveis);
+
+/**
  * Destroi um polígono de visibilidade.
  * @param poligono Polígono a ser destruído
  */

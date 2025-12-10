@@ -132,15 +132,20 @@ int executar_cmd_p(Ponto origem,
         return 0;
     }
     
-    /* Calcula polígono de visibilidade */
-    PoligonoVisibilidade poligono = calcular_visibilidade(
+    /* Cria lista para rastrear segmentos visíveis (para consistência, não remove para P) */
+    Lista segmentos_visiveis = criar_lista();
+    
+    /* Calcula polígono de visibilidade COM rastreamento de segmentos */
+    PoligonoVisibilidade poligono = calcular_visibilidade_com_segmentos(
         origem, lista_anteparos,
         bbox[0], bbox[1], bbox[2], bbox[3],
-        tipo_ordenacao, limiar_insertion
+        tipo_ordenacao, limiar_insertion,
+        segmentos_visiveis
     );
     
     if (poligono == NULL)
     {
+        destruir_lista(segmentos_visiveis, NULL);
         fprintf(stderr, "Aviso: falha ao calcular visibilidade\n");
         return 0;
     }
@@ -167,6 +172,10 @@ int executar_cmd_p(Ponto origem,
         
         atual = obter_proximo(atual);
     }
+    
+    /* Nota: Para P (pintura), segmentos NÃO são removidos
+     * apenas formas são pintadas. segmentos_visiveis rastreado para futura extensão */
+    destruir_lista(segmentos_visiveis, NULL);
     
     /* Gera relatório */
     char caminho_txt[MAX_CAMINHO];

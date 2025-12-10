@@ -18,6 +18,7 @@
 #include "visibilidade.h"
 #include "svg.h"
 #include "formas.h"
+#include "segmento.h"
 
 #define MAX_LINHA 512
 
@@ -227,13 +228,43 @@ int processar_arquivo_qry(const char *caminho_qry,
             char caminho_svg[1024];
             snprintf(caminho_svg, sizeof(caminho_svg), "%s/%s.svg", dir_saida, sufixo_saida);
             
+            /* Recalcula bbox para incluir todos os anteparos (incluindo clones) */
+            double view_min_x = bbox[0];
+            double view_min_y = bbox[1];
+            double view_max_x = bbox[2];
+            double view_max_y = bbox[3];
+            
+            if (lista_anteparos != NULL && !lista_vazia(lista_anteparos))
+            {
+                No seg_node = obter_primeiro(lista_anteparos);
+                while (seg_node != NULL)
+                {
+                    Segmento seg = (Segmento)obter_elemento(seg_node);
+                    double x1 = get_segmento_x1(seg);
+                    double y1 = get_segmento_y1(seg);
+                    double x2 = get_segmento_x2(seg);
+                    double y2 = get_segmento_y2(seg);
+                    
+                    if (x1 < view_min_x) view_min_x = x1;
+                    if (x2 < view_min_x) view_min_x = x2;
+                    if (y1 < view_min_y) view_min_y = y1;
+                    if (y2 < view_min_y) view_min_y = y2;
+                    if (x1 > view_max_x) view_max_x = x1;
+                    if (x2 > view_max_x) view_max_x = x2;
+                    if (y1 > view_max_y) view_max_y = y1;
+                    if (y2 > view_max_y) view_max_y = y2;
+                    
+                    seg_node = obter_proximo(seg_node);
+                }
+            }
+            
             double margem = 10.0;
             SvgContexto svg = criar_svg_viewbox(
                 caminho_svg,
-                bbox[0] - margem,
-                bbox[1] - margem,
-                (bbox[2] - bbox[0]) + 2 * margem,
-                (bbox[3] - bbox[1]) + 2 * margem
+                view_min_x - margem,
+                view_min_y - margem,
+                (view_max_x - view_min_x) + 2 * margem,
+                (view_max_y - view_min_y) + 2 * margem
             );
             
             if (svg != NULL)

@@ -1,0 +1,14 @@
+a:
+  12 (retangulo) -> 10000, 10001, 10002, 10003
+d: x=40.00 y=40.00
+  5 retangulo
+  6 linha
+  7 linha
+  8 linha
+  9 circulo
+  10 circulo
+  11 circulo
+  10001 segmento (anteparo de 12)
+  10002 segmento (anteparo de 12)
+  10003 segmento (anteparo de 12)
+  10000 segmento (anteparo de 12)

@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 #include "cmd_cln.h"
 #include "lista.h"
@@ -123,13 +124,14 @@ static Forma clonar_forma_com_deslocamento(Forma forma, double dx, double dy, in
  * Gera o arquivo de relatório TXT.
  */
 static void gerar_relatorio_txt(const char *caminho, Lista formas_clonadas, 
-                                 double dx, double dy)
+                                 Lista segmentos_clonados, double dx, double dy)
 {
     FILE *arquivo = fopen(caminho, "a");
     if (arquivo == NULL) return;
     
     fprintf(arquivo, "cln: dx=%.2f dy=%.2f\n", dx, dy);
     
+    /* Log formas clonadas */
     No atual = obter_primeiro(formas_clonadas);
     while (atual != NULL)
     {
@@ -148,6 +150,18 @@ static void gerar_relatorio_txt(const char *caminho, Lista formas_clonadas,
         }
         
         fprintf(arquivo, "  %d %s (clone)\n", id, tipo_str);
+        atual = obter_proximo(atual);
+    }
+    
+    /* Log segmentos (anteparos) clonados */
+    atual = obter_primeiro(segmentos_clonados);
+    while (atual != NULL)
+    {
+        Segmento seg = (Segmento)obter_elemento(atual);
+        int id = get_segmento_id(seg);
+        int id_orig = get_segmento_id_original(seg);
+        
+        fprintf(arquivo, "  %d segmento (clone de %d)\n", id, id_orig);
         atual = obter_proximo(atual);
     }
     
@@ -178,15 +192,20 @@ int executar_cmd_cln(Ponto origem,
         return 0;
     }
     
-    /* Calcula polígono de visibilidade */
-    PoligonoVisibilidade poligono = calcular_visibilidade(
+    /* Cria lista para rastrear segmentos visíveis */
+    Lista segmentos_visiveis = criar_lista();
+    
+    /* Calcula polígono de visibilidade COM rastreamento de segmentos */
+    PoligonoVisibilidade poligono = calcular_visibilidade_com_segmentos(
         origem, lista_anteparos,
         bbox[0], bbox[1], bbox[2], bbox[3],
-        tipo_ordenacao, limiar_insertion
+        tipo_ordenacao, limiar_insertion,
+        segmentos_visiveis
     );
     
     if (poligono == NULL)
     {
+        destruir_lista(segmentos_visiveis, NULL);
         fprintf(stderr, "Aviso: falha ao calcular visibilidade\n");
         return 0;
     }
@@ -197,6 +216,7 @@ int executar_cmd_cln(Ponto origem,
     
     if (vertices == NULL)
     {
+        destruir_lista(segmentos_visiveis, NULL);
         if (acumulador_poligonos == NULL) destruir_poligono_visibilidade(poligono);
         return 0;
     }
@@ -217,7 +237,7 @@ int executar_cmd_cln(Ponto origem,
         atual = obter_proximo(atual);
     }
     
-    /* Clona e adiciona à lista principal */
+    /* Clona formas e adiciona à lista principal */
     Lista clones = criar_lista();
     int contador = 0;
     
@@ -238,10 +258,56 @@ int executar_cmd_cln(Ponto origem,
         atual = obter_proximo(atual);
     }
     
+    /* Clona segmentos visíveis e adiciona à lista de anteparos */
+    Lista segmentos_clonados = criar_lista(); /* Lista para log */
+    No seg_atual = obter_primeiro(segmentos_visiveis);
+    while (seg_atual != NULL)
+    {
+        Segmento seg = (Segmento)obter_elemento(seg_atual);
+        
+        /* Clona segmento com deslocamento */
+        double x1 = get_segmento_x1(seg) + dx;
+        double y1 = get_segmento_y1(seg) + dy;
+        double x2 = get_segmento_x2(seg) + dx;
+        double y2 = get_segmento_y2(seg) + dy;
+        
+        Segmento clone = criar_segmento(
+            *proximo_id,
+            get_segmento_id_original(seg),
+            x1, y1, x2, y2,
+            get_segmento_cor(seg)
+        );
+        
+        if (clone != NULL)
+        {
+            inserir_fim(lista_anteparos, clone);
+            inserir_fim(segmentos_clonados, clone); /* Para log */
+            (*proximo_id)++;
+        }
+        
+        seg_atual = obter_proximo(seg_atual);
+    }
+    
+    destruir_lista(segmentos_visiveis, NULL);
+    
     /* Gera relatório */
     char caminho_txt[MAX_CAMINHO];
     snprintf(caminho_txt, MAX_CAMINHO, "%s/%s.txt", dir_saida, nome_base);
-    gerar_relatorio_txt(caminho_txt, clones, dx, dy);
+    gerar_relatorio_txt(caminho_txt, clones, segmentos_clonados, dx, dy);
+    
+    destruir_lista(segmentos_clonados, NULL); /* Não destrói segmentos, só a lista */
+    
+    /* Calcula viewbox dinâmica para incluir clones */
+    double view_min_x = bbox[0];
+    double view_min_y = bbox[1];
+    double view_max_x = bbox[2];
+    double view_max_y = bbox[3];
+    
+    /* Expande viewbox se clones forem para fora */
+    if (dx < 0) view_min_x = fmin(view_min_x, bbox[0] + dx);
+    if (dx > 0) view_max_x = fmax(view_max_x, bbox[2] + dx);
+    if (dy < 0) view_min_y = fmin(view_min_y, bbox[1] + dy);
+    if (dy > 0) view_max_y = fmax(view_max_y, bbox[3] + dy);
     
     /* SVG: Gerencia saída baseada no sufixo */
     if (strcmp(sufixo, "-") == 0)
@@ -266,14 +332,14 @@ int executar_cmd_cln(Ponto origem,
         char caminho_svg[MAX_CAMINHO];
         snprintf(caminho_svg, MAX_CAMINHO, "%s/%s-%s.svg", dir_saida, nome_base, sufixo);
         
-        /* Usa viewBox com as dimensões do cenário */
+        /* Usa viewBox dinâmica expandida */
         double margem = 40.0;
         SvgContexto svg = criar_svg_viewbox(
             caminho_svg,
-            bbox[0] - margem,
-            bbox[1] - margem,
-            (bbox[2] - bbox[0]) + 2 * margem,
-            (bbox[3] - bbox[1]) + 2 * margem
+            view_min_x - margem,
+            view_min_y - margem,
+            (view_max_x - view_min_x) + 2 * margem,
+            (view_max_y - view_min_y) + 2 * margem
         );
         
         if (svg != NULL)

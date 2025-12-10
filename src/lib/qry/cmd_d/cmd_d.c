@@ -47,7 +47,8 @@ static int forma_visivel(Forma forma, double *vertices, int num_vertices)
 /**
  * Gera o arquivo de relatório TXT.
  */
-static void gerar_relatorio_txt(const char *caminho, Lista formas_visiveis, double x, double y)
+static void gerar_relatorio_txt(const char *caminho, Lista formas_visiveis, 
+                                Lista segmentos_destruidos, double x, double y)
 {
     FILE *arquivo = fopen(caminho, "a"); /* Append */
     if (arquivo == NULL)
@@ -58,6 +59,7 @@ static void gerar_relatorio_txt(const char *caminho, Lista formas_visiveis, doub
     
     fprintf(arquivo, "d: x=%.2f y=%.2f\n", x, y);
     
+    /* Log formas destruídas */
     No atual = obter_primeiro(formas_visiveis);
     while (atual != NULL)
     {
@@ -76,6 +78,18 @@ static void gerar_relatorio_txt(const char *caminho, Lista formas_visiveis, doub
         }
         
         fprintf(arquivo, "  %d %s\n", id, tipo_str);
+        atual = obter_proximo(atual);
+    }
+    
+    /* Log segmentos (anteparos) destruídos */
+    atual = obter_primeiro(segmentos_destruidos);
+    while (atual != NULL)
+    {
+        Segmento seg = (Segmento)obter_elemento(atual);
+        int id = get_segmento_id(seg);
+        int id_orig = get_segmento_id_original(seg);
+        
+        fprintf(arquivo, "  %d segmento (anteparo de %d)\n", id, id_orig);
         atual = obter_proximo(atual);
     }
     
@@ -104,15 +118,20 @@ int executar_cmd_d(Ponto origem,
         return 0;
     }
     
-    /* Calcula polígono de visibilidade */
-    PoligonoVisibilidade poligono = calcular_visibilidade(
+    /* Cria lista para rastrear segmentos visíveis */
+    Lista segmentos_visiveis = criar_lista();
+    
+    /* Calcula polígono de visibilidade COM rastreamento de segmentos */
+    PoligonoVisibilidade poligono = calcular_visibilidade_com_segmentos(
         origem, lista_anteparos,
         bbox[0], bbox[1], bbox[2], bbox[3],
-        tipo_ordenacao, limiar_insertion
+        tipo_ordenacao, limiar_insertion,
+        segmentos_visiveis
     );
     
     if (poligono == NULL)
     {
+        destruir_lista(segmentos_visiveis, NULL);
         fprintf(stderr, "Aviso: falha ao calcular visibilidade\n");
         return 0;
     }
@@ -140,10 +159,51 @@ int executar_cmd_d(Ponto origem,
         atual = obter_proximo(atual);
     }
     
+    /* Remove segmentos visíveis da lista de anteparos */
+    Lista segmentos_destruidos = criar_lista(); /* Para log */
+    No seg_atual = obter_primeiro(segmentos_visiveis);
+    while (seg_atual != NULL)
+    {
+        Segmento seg = (Segmento)obter_elemento(seg_atual);
+        
+        /* Encontra e remove da lista de anteparos */
+        No ant_atual = obter_primeiro(lista_anteparos);
+        while (ant_atual != NULL)
+        {
+            No proximo = obter_proximo(ant_atual);
+            Segmento ant_seg = (Segmento)obter_elemento(ant_atual);
+            
+            if (ant_seg == seg)
+            {
+                /* Salva referência para log antes de remover */
+                inserir_fim(segmentos_destruidos, ant_seg);
+                remover_no(lista_anteparos, ant_atual);
+                break;
+            }
+            ant_atual = proximo;
+        }
+        
+        seg_atual = obter_proximo(seg_atual);
+    }
+    
+    destruir_lista(segmentos_visiveis, NULL);
+    
     /* Gera arquivos de saída */
     char caminho_txt[MAX_CAMINHO];
     snprintf(caminho_txt, MAX_CAMINHO, "%s/%s.txt", dir_saida, nome_base);
-    gerar_relatorio_txt(caminho_txt, formas_visiveis, get_ponto_x(origem), get_ponto_y(origem));
+    gerar_relatorio_txt(caminho_txt, formas_visiveis, segmentos_destruidos, 
+                        get_ponto_x(origem), get_ponto_y(origem));
+    
+    /* Agora destrói os segmentos removidos */
+    No seg_destruir = obter_primeiro(segmentos_destruidos);
+    while (seg_destruir != NULL)
+    {
+        No prox = obter_proximo(seg_destruir);
+        Segmento seg = (Segmento)obter_elemento(seg_destruir);
+        destruir_segmento(seg);
+        seg_destruir = prox;
+    }
+    destruir_lista(segmentos_destruidos, NULL);
     
     /* SVG: Gerencia saída baseada no sufixo */
     if (strcmp(sufixo, "-") == 0)
