@@ -14,6 +14,9 @@
 #include "linha.h"
 #include "texto.h"
 #include "formas.h"
+#include "ponto.h"
+#include "segmento.h"
+#include "visibilidade.h"
 
 /* ============================================================================
  * Estrutura Interna
@@ -219,6 +222,9 @@ void svg_desenhar_forma(SvgContexto svg, Forma forma)
 {
     if (svg == NULL || forma == NULL) return;
     
+    /* Não desenha formas inativas (convertidas em anteparos) */
+    if (!getFormaAtiva(forma)) return;
+    
     TipoForma tipo = getFormaTipo(forma);
     void *dados = getFormaDados(forma);
     
@@ -292,4 +298,113 @@ void svg_comentario(SvgContexto svg, const char *texto)
     if (ctx == NULL || ctx->arquivo == NULL || texto == NULL) return;
     
     fprintf(ctx->arquivo, "  <!-- %s -->\n", texto);
+}
+
+/* ============================================================================
+ * Funções para Visibilidade
+ * ============================================================================ */
+
+void svg_desenhar_segmento(SvgContexto svg, void *seg, 
+                           const char *cor, double largura)
+{
+    SvgContextoInternal *ctx = (SvgContextoInternal*)svg;
+    if (ctx == NULL || ctx->arquivo == NULL || seg == NULL) return;
+    
+    Segmento s = (Segmento)seg;
+    
+    fprintf(ctx->arquivo,
+            "  <line x1=\"%.2f\" y1=\"%.2f\" x2=\"%.2f\" y2=\"%.2f\" "
+            "stroke=\"%s\" stroke-width=\"%.1f\" stroke-dasharray=\"5,3\"/>\n",
+            get_segmento_x1(s),
+            get_segmento_y1(s),
+            get_segmento_x2(s),
+            get_segmento_y2(s),
+            cor ? cor : "black",
+            largura);
+}
+
+void svg_desenhar_lista_segmentos(SvgContexto svg, Lista lista, const char *cor)
+{
+    SvgContextoInternal *ctx = (SvgContextoInternal*)svg;
+    if (ctx == NULL || lista == NULL) return;
+    
+    fprintf(ctx->arquivo, "  <!-- Anteparos (segmentos bloqueantes) -->\n");
+    
+    No atual = obter_primeiro(lista);
+    while (atual != NULL)
+    {
+        Segmento seg = (Segmento)obter_elemento(atual);
+        svg_desenhar_segmento(svg, seg, cor ? cor : "#FF6600", 2.0);
+        atual = obter_proximo(atual);
+    }
+    
+    fprintf(ctx->arquivo, "\n");
+}
+
+void svg_desenhar_bomba(SvgContexto svg, double x, double y, 
+                        double raio, const char *cor)
+{
+    SvgContextoInternal *ctx = (SvgContextoInternal*)svg;
+    if (ctx == NULL || ctx->arquivo == NULL) return;
+    
+    const char *cor_bomba = cor ? cor : "#FF0000";
+    
+    fprintf(ctx->arquivo, "  <!-- Bomba (ponto de origem) -->\n");
+    
+    /* Círculo principal */
+    fprintf(ctx->arquivo,
+            "  <circle cx=\"%.2f\" cy=\"%.2f\" r=\"%.2f\" "
+            "fill=\"%s\" fill-opacity=\"0.7\" stroke=\"black\" stroke-width=\"1\"/>\n",
+            x, y, raio, cor_bomba);
+    
+    /* X no centro */
+    double offset = raio * 0.6;
+    fprintf(ctx->arquivo,
+            "  <line x1=\"%.2f\" y1=\"%.2f\" x2=\"%.2f\" y2=\"%.2f\" "
+            "stroke=\"white\" stroke-width=\"2\"/>\n",
+            x - offset, y - offset, x + offset, y + offset);
+    fprintf(ctx->arquivo,
+            "  <line x1=\"%.2f\" y1=\"%.2f\" x2=\"%.2f\" y2=\"%.2f\" "
+            "stroke=\"white\" stroke-width=\"2\"/>\n",
+            x - offset, y + offset, x + offset, y - offset);
+}
+
+void svg_desenhar_poligono_visibilidade(SvgContexto svg, void *poligono,
+                                         const char *cor_borda,
+                                         const char *cor_preenchimento,
+                                         double opacidade)
+{
+    SvgContextoInternal *ctx = (SvgContextoInternal*)svg;
+    if (ctx == NULL || ctx->arquivo == NULL || poligono == NULL) return;
+    
+    PoligonoVisibilidade poli = (PoligonoVisibilidade)poligono;
+    int num_vertices = poligono_num_vertices(poli);
+    
+    if (num_vertices < 3)
+    {
+        fprintf(ctx->arquivo, "  <!-- Polígono de visibilidade vazio ou inválido -->\n");
+        return;
+    }
+    
+    fprintf(ctx->arquivo, "  <!-- Região de Visibilidade -->\n");
+    fprintf(ctx->arquivo, "  <polygon points=\"");
+    
+    for (int i = 0; i < num_vertices; i++)
+    {
+        Ponto v = poligono_obter_vertice(poli, i);
+        if (v != NULL)
+        {
+            fprintf(ctx->arquivo, "%.2f,%.2f", get_ponto_x(v), get_ponto_y(v));
+            if (i < num_vertices - 1)
+            {
+                fprintf(ctx->arquivo, " ");
+            }
+        }
+    }
+    
+    fprintf(ctx->arquivo, "\" stroke=\"%s\" fill=\"%s\" fill-opacity=\"%.2f\" "
+            "stroke-width=\"2\"/>\n",
+            cor_borda ? cor_borda : "black",
+            cor_preenchimento ? cor_preenchimento : "yellow",
+            opacidade);
 }

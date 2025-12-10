@@ -158,6 +158,9 @@ int executar_cmd_a(Lista lista_formas,
                     contador += converter_texto((Texto)dados, id, lista_anteparos);
                     break;
             }
+            
+            /* Marca forma como inativa (não será mais desenhada no SVG) */
+            setFormaAtiva(forma, 0);
         }
         
         atual = obter_proximo(atual);

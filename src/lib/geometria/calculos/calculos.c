@@ -191,3 +191,119 @@ int comparar_segmentos_raio(Ponto origem, double angulo, Segmento seg1, Segmento
     
     return (dist1 < dist2) ? -1 : 1;
 }
+
+/* ============================================================================
+ * Implementação das Funções de Ponto no Polígono
+ * ============================================================================ */
+
+int ponto_no_poligono(double px, double py, double *vertices, int num_vertices)
+{
+    if (vertices == NULL || num_vertices < 3)
+    {
+        return 0;
+    }
+    
+    /* Algoritmo Ray Casting (par/ímpar)
+     * Dispara um raio horizontal para a direita e conta quantas vezes
+     * cruza as arestas do polígono. Se cruzar um número ímpar de vezes,
+     * o ponto está dentro.
+     */
+    int dentro = 0;
+    
+    for (int i = 0, j = num_vertices - 1; i < num_vertices; j = i++)
+    {
+        double xi = vertices[i * 2];
+        double yi = vertices[i * 2 + 1];
+        double xj = vertices[j * 2];
+        double yj = vertices[j * 2 + 1];
+        
+        /* Verifica se o raio horizontal cruza a aresta (i, j) */
+        if (((yi > py) != (yj > py)) &&
+            (px < (xj - xi) * (py - yi) / (yj - yi) + xi))
+        {
+            dentro = !dentro;
+        }
+    }
+    
+    return dentro;
+}
+
+/* Precisamos incluir os headers de formas para forma_no_poligono */
+#include "formas.h"
+#include "circulo.h"
+#include "retangulo.h"
+#include "linha.h"
+#include "texto.h"
+
+int forma_no_poligono(void *forma_ptr, double *vertices, int num_vertices)
+{
+    if (forma_ptr == NULL || vertices == NULL || num_vertices < 3)
+    {
+        return 0;
+    }
+    
+    Forma forma = (Forma)forma_ptr;
+    TipoForma tipo = getFormaTipo(forma);
+    void *dados = getFormaDados(forma);
+    
+    switch (tipo)
+    {
+        case TIPO_CIRCULO:
+        {
+            Circulo c = (Circulo)dados;
+            double cx = getCirculoX(c);
+            double cy = getCirculoY(c);
+            
+            /* Verifica se o centro está dentro */
+            return ponto_no_poligono(cx, cy, vertices, num_vertices);
+        }
+        
+        case TIPO_RETANGULO:
+        {
+            Retangulo r = (Retangulo)dados;
+            double x = getRetanguloX(r);
+            double y = getRetanguloY(r);
+            double w = getRetanguloLargura(r);
+            double h = getRetanguloAltura(r);
+            
+            /* Verifica se algum dos 4 cantos está dentro */
+            if (ponto_no_poligono(x, y, vertices, num_vertices) ||
+                ponto_no_poligono(x + w, y, vertices, num_vertices) ||
+                ponto_no_poligono(x, y + h, vertices, num_vertices) ||
+                ponto_no_poligono(x + w, y + h, vertices, num_vertices))
+            {
+                return 1;
+            }
+            
+            /* Ou se o centro está dentro */
+            return ponto_no_poligono(x + w/2, y + h/2, vertices, num_vertices);
+        }
+        
+        case TIPO_LINHA:
+        {
+            Linha l = (Linha)dados;
+            double x1 = getLinhaX1(l);
+            double y1 = getLinhaY1(l);
+            double x2 = getLinhaX2(l);
+            double y2 = getLinhaY2(l);
+            
+            /* Verifica se algum extremo está dentro */
+            return ponto_no_poligono(x1, y1, vertices, num_vertices) ||
+                   ponto_no_poligono(x2, y2, vertices, num_vertices);
+        }
+        
+        case TIPO_TEXTO:
+        {
+            Texto t = (Texto)dados;
+            double x = getTextoX(t);
+            double y = getTextoY(t);
+            
+            /* Verifica se a âncora está dentro */
+            return ponto_no_poligono(x, y, vertices, num_vertices);
+        }
+        
+        default:
+            return 0;
+    }
+}
+

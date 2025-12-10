@@ -124,4 +124,50 @@ void svg_desenhar_poligono(SvgContexto ctx, double *pontos, int num_pontos,
  */
 void svg_comentario(SvgContexto ctx, const char *texto);
 
+/* ============================================================================
+ * Funções para Visibilidade
+ * ============================================================================ */
+
+/**
+ * Desenha um segmento (anteparo) no SVG.
+ * @param ctx Contexto SVG
+ * @param seg Segmento a desenhar
+ * @param cor Cor do segmento
+ * @param largura Largura da linha
+ */
+void svg_desenhar_segmento(SvgContexto ctx, void *seg, 
+                           const char *cor, double largura);
+
+/**
+ * Desenha uma lista de segmentos (anteparos) no SVG.
+ * @param ctx Contexto SVG
+ * @param lista Lista de segmentos
+ * @param cor Cor dos segmentos
+ */
+void svg_desenhar_lista_segmentos(SvgContexto ctx, Lista lista, const char *cor);
+
+/**
+ * Desenha uma bomba (marcador de origem de visibilidade).
+ * @param ctx Contexto SVG
+ * @param x Coordenada X
+ * @param y Coordenada Y
+ * @param raio Raio do marcador
+ * @param cor Cor do marcador
+ */
+void svg_desenhar_bomba(SvgContexto ctx, double x, double y, 
+                        double raio, const char *cor);
+
+/**
+ * Desenha o polígono de visibilidade a partir de seus vértices.
+ * @param ctx Contexto SVG
+ * @param poligono Polígono de visibilidade (PoligonoVisibilidade)
+ * @param cor_borda Cor da borda
+ * @param cor_preenchimento Cor do preenchimento
+ * @param opacidade Opacidade (0.0 a 1.0)
+ */
+void svg_desenhar_poligono_visibilidade(SvgContexto ctx, void *poligono,
+                                         const char *cor_borda,
+                                         const char *cor_preenchimento,
+                                         double opacidade);
+
 #endif /* SVG_H */

@@ -107,4 +107,34 @@ double distancia_raio_segmento(Ponto origem, double angulo, Segmento seg);
  */
 int comparar_segmentos_raio(Ponto origem, double angulo, Segmento seg1, Segmento seg2);
 
+/* ============================================================================
+ * Funções de Ponto no Polígono
+ * ============================================================================ */
+
+/**
+ * Verifica se um ponto está dentro de um polígono.
+ * Usa o algoritmo de Ray Casting (par/ímpar).
+ * 
+ * @param px Coordenada X do ponto
+ * @param py Coordenada Y do ponto
+ * @param vertices Array de coordenadas do polígono [x0, y0, x1, y1, ...]
+ * @param num_vertices Número de vértices do polígono
+ * @return 1 se o ponto está dentro, 0 se está fora
+ */
+int ponto_no_poligono(double px, double py, double *vertices, int num_vertices);
+
+/**
+ * Verifica se uma forma está pelo menos parcialmente dentro do polígono.
+ * Para círculos: verifica se o centro está dentro.
+ * Para retângulos: verifica se algum canto está dentro.
+ * Para linhas: verifica se algum extremo está dentro.
+ * Para textos: verifica se a âncora está dentro.
+ * 
+ * @param forma A forma a testar
+ * @param vertices Array de coordenadas do polígono
+ * @param num_vertices Número de vértices
+ * @return 1 se a forma está (parcialmente) dentro, 0 caso contrário
+ */
+int forma_no_poligono(void *forma, double *vertices, int num_vertices);
+
 #endif /* CALCULOS_H */

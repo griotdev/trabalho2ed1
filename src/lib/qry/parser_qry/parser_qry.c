@@ -129,13 +129,14 @@ int processar_arquivo_qry(const char *caminho_qry,
                         num_linha, linha_limpa);
             }
         }
-        else if (linha_limpa[0] == 'P' && isspace((unsigned char)linha_limpa[1]))
+        else if ((linha_limpa[0] == 'P' || linha_limpa[0] == 'p') && isspace((unsigned char)linha_limpa[1]))
         {
-            /* Comando 'P x y cor sfx' */
+            /* Comando 'P x y cor sfx' ou 'p x y cor sfx' */
             double x, y;
             char cor[50], sufixo[100];
             
-            int lidos = sscanf(linha_limpa, "P %lf %lf %49s %99s", &x, &y, cor, sufixo);
+            /* Pula o primeiro caractere (P ou p) e o espaço */
+            int lidos = sscanf(linha_limpa + 2, "%lf %lf %49s %99s", &x, &y, cor, sufixo);
             if (lidos == 4)
             {
                 printf("      [P] Pintura em (%.2f, %.2f) cor=%s sfx=%s\n", x, y, cor, sufixo);

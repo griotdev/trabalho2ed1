@@ -14,6 +14,7 @@
 #include "visibilidade.h"
 #include "formas.h"
 #include "svg.h"
+#include "calculos.h"
 
 #define MAX_CAMINHO 1024
 
@@ -22,16 +23,43 @@
  * ============================================================================ */
 
 /**
- * Verifica se uma forma está dentro do polígono de visibilidade.
- * Simplificação: verifica se o centro/âncora da forma está no polígono.
+ * Converte polígono de visibilidade para array de coordenadas.
+ * Retorna array alocado [x0, y0, x1, y1, ...] que deve ser liberado pelo chamador.
  */
-static int forma_visivel(Forma forma, PoligonoVisibilidade poligono)
+static double* poligono_para_array(PoligonoVisibilidade poligono, int *num_vertices)
 {
-    /* TODO: Implementar verificação precisa de ponto no polígono */
-    /* Por enquanto, retorna 1 (todas visíveis) para teste */
-    (void)forma;
-    (void)poligono;
-    return 1;
+    if (poligono == NULL || num_vertices == NULL) return NULL;
+    
+    *num_vertices = poligono_num_vertices(poligono);
+    if (*num_vertices < 3) return NULL;
+    
+    double *vertices = (double*)malloc(*num_vertices * 2 * sizeof(double));
+    if (vertices == NULL) return NULL;
+    
+    for (int i = 0; i < *num_vertices; i++)
+    {
+        Ponto p = poligono_obter_vertice(poligono, i);
+        if (p != NULL)
+        {
+            vertices[i * 2] = get_ponto_x(p);
+            vertices[i * 2 + 1] = get_ponto_y(p);
+        }
+    }
+    
+    return vertices;
+}
+
+/**
+ * Verifica se uma forma está dentro do polígono de visibilidade.
+ */
+static int forma_visivel(Forma forma, double *vertices, int num_vertices)
+{
+    if (forma == NULL || vertices == NULL || num_vertices < 3)
+    {
+        return 0;
+    }
+    
+    return forma_no_poligono(forma, vertices, num_vertices);
 }
 
 /**
@@ -101,6 +129,10 @@ int executar_cmd_d(Ponto origem,
         return 0;
     }
     
+    /* Converte polígono para array de vértices */
+    int num_vertices;
+    double *vertices = poligono_para_array(poligono, &num_vertices);
+    
     /* Identifica formas visíveis */
     Lista formas_visiveis = criar_lista();
     int contador = 0;
@@ -110,7 +142,7 @@ int executar_cmd_d(Ponto origem,
     {
         Forma forma = (Forma)obter_elemento(atual);
         
-        if (forma_visivel(forma, poligono))
+        if (forma_visivel(forma, vertices, num_vertices))
         {
             inserir_fim(formas_visiveis, forma);
             contador++;
@@ -121,34 +153,61 @@ int executar_cmd_d(Ponto origem,
     
     /* Gera arquivos de saída */
     char caminho_txt[MAX_CAMINHO];
-    snprintf(caminho_txt, MAX_CAMINHO, "%s/%s-consultas.txt", dir_saida, nome_base);
+    snprintf(caminho_txt, MAX_CAMINHO, "%s/%s.txt", dir_saida, nome_base);
     gerar_relatorio_txt(caminho_txt, formas_visiveis);
     
-    /* SVG: se sufixo é "-", desenha no principal; senão, cria novo arquivo */
-    if (strcmp(sufixo, "-") != 0)
+    /* SVG: sempre cria arquivo de consultas (sufixo "-" usa nome "-consultas") */
     {
         char caminho_svg[MAX_CAMINHO];
-        snprintf(caminho_svg, MAX_CAMINHO, "%s/%s-%s.svg", dir_saida, nome_base, sufixo);
+        if (strcmp(sufixo, "-") == 0)
+        {
+            snprintf(caminho_svg, MAX_CAMINHO, "%s/%s.svg", dir_saida, nome_base);
+        }
+        else
+        {
+            snprintf(caminho_svg, MAX_CAMINHO, "%s/%s-%s.svg", dir_saida, nome_base, sufixo);
+        }
         
-        SvgContexto svg = criar_svg(caminho_svg, 
-                                     bbox[2] - bbox[0] + 20,
-                                     bbox[3] - bbox[1] + 20);
+        /* Usa viewBox com as dimensões do cenário */
+        double margem = 10.0;
+        SvgContexto svg = criar_svg_viewbox(
+            caminho_svg,
+            bbox[0] - margem,
+            bbox[1] - margem,
+            (bbox[2] - bbox[0]) + 2 * margem,
+            (bbox[3] - bbox[1]) + 2 * margem
+        );
+        
         if (svg != NULL)
         {
-            /* Desenha polígono de visibilidade */
-            Lista vertices = poligono_obter_vertices(poligono);
-            if (vertices != NULL && !lista_vazia(vertices))
+            /* 1. Desenha as formas originais */
+            svg_comentario(svg, "Formas originais do cenário");
+            svg_desenhar_lista(svg, lista_formas);
+            
+            /* 2. Desenha os anteparos (segmentos bloqueantes) */
+            if (lista_anteparos != NULL && !lista_vazia(lista_anteparos))
             {
-                /* TODO: desenhar polígono no SVG */
+                svg_desenhar_lista_segmentos(svg, lista_anteparos, "#FF6600");
             }
             
+            /* 3. Desenha a região de visibilidade (polígono semi-transparente) */
+            svg_desenhar_poligono_visibilidade(svg, poligono, 
+                                                "none", "#FFFF00", 0.3);
+            
+            /* 4. Desenha a bomba (ponto de origem) */
+            svg_desenhar_bomba(svg, get_ponto_x(origem), get_ponto_y(origem), 
+                               5.0, "#FF0000");
+            
             finalizar_svg(svg);
+            printf("          SVG gerado: %s\n", caminho_svg);
         }
     }
     
     /* Limpa (não destrói as formas, só a lista temporária) */
     destruir_lista(formas_visiveis, NULL);
     destruir_poligono_visibilidade(poligono);
+    if (vertices != NULL) free(vertices);
     
     return contador;
 }
+

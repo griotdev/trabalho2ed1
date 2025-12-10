@@ -73,4 +73,18 @@ Forma clonaForma(Forma forma);
  */
 void setFormaPosicao(Forma forma, double x, double y);
 
+/**
+ * Verifica se uma forma está ativa (deve ser desenhada).
+ * @param forma Ponteiro para a forma
+ * @return 1 se ativa, 0 se inativa
+ */
+int getFormaAtiva(Forma forma);
+
+/**
+ * Define se uma forma está ativa.
+ * @param forma Ponteiro para a forma
+ * @param ativa 1 para ativar, 0 para desativar
+ */
+void setFormaAtiva(Forma forma, int ativa);
+
 #endif /* FORMAS_H */

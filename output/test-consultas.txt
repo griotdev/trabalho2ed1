@@ -1,9 +1,0 @@
-d:
-  5 retangulo
-  6 linha
-  7 linha
-  8 linha
-  9 circulo
-  10 circulo
-  11 circulo
-  12 retangulo

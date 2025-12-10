@@ -15,6 +15,7 @@ typedef struct forma_internal
 {
     TipoForma tipo;
     void *dados;
+    int ativa;  /* 1 = forma deve ser desenhada, 0 = forma inativa (convertida em anteparo) */
 } FormaInternal;
 
 /* ============================================================================
@@ -32,6 +33,7 @@ Forma criaForma(TipoForma tipo, void *dados)
 
     f->tipo = tipo;
     f->dados = dados;
+    f->ativa = 1;  /* Por padrão, forma está ativa */
 
     return (Forma)f;
 }
@@ -72,6 +74,25 @@ int getFormaId(Forma forma)
             return getTextoId((Texto)f->dados);
         default:
             return -1;
+    }
+}
+
+int getFormaAtiva(Forma forma)
+{
+    FormaInternal *f = (FormaInternal*)forma;
+    if (f == NULL)
+    {
+        return 0;
+    }
+    return f->ativa;
+}
+
+void setFormaAtiva(Forma forma, int ativa)
+{
+    FormaInternal *f = (FormaInternal*)forma;
+    if (f != NULL)
+    {
+        f->ativa = ativa;
     }
 }
 

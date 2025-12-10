@@ -26,7 +26,7 @@
 #endif
 
 #define EPSILON 1e-9
-#define MARGEM_BBOX 10.0
+#define MARGEM_BBOX 5.0
 
 /* ============================================================================
  * Estruturas Internas

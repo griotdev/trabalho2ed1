@@ -8,7 +8,7 @@ LDFLAGS = -lm
 
 LIB_DIR = lib
 BUILD_DIR = build
-TARGET = t2
+TARGET = ted
 
 # =============================================================================
 # Arquivos fonte

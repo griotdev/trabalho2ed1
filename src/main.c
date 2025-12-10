@@ -275,13 +275,20 @@ int main(int argc, char *argv[])
         /* Bounding box para visibilidade */
         double bbox[4] = {min_x, min_y, max_x, max_y};
         
+        /* Extrai nome base do QRY e combina com GEO */
+        char nome_base_qry[MAX_CAMINHO];
+        extrair_nome_base(caminho_qry, nome_base_qry, MAX_CAMINHO);
+        
+        char nome_combinado[MAX_CAMINHO * 2];
+        snprintf(nome_combinado, sizeof(nome_combinado), "%s-%s", nome_base, nome_base_qry);
+        
         /* Processa o arquivo .qry */
         int comandos = processar_arquivo_qry(
             caminho_qry,
             lista_formas,
             lista_anteparos,
             obter_diretorio_saida(args),
-            nome_base,
+            nome_combinado,
             bbox
         );
         
